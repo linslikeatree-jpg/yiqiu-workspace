@@ -790,10 +790,15 @@ function growthPage(){
     <div class="growth-card">
       <div class="streak-row">
         <div class="streak-fire">🦉</div>
-        <div>
+        <div style="flex:1">
           <div class="streak-num">${duolingo.streak}</div>
           <div class="streak-label">多邻国连续打卡天数</div>
         </div>
+        <button class="note-action-btn" onclick="toggleDuoEdit()">修改</button>
+      </div>
+      <div id="duoEditWrap" style="display:none;margin-top:12px;display:flex;gap:8px;align-items:center">
+        <input type="number" class="project-input" id="duoStreakInput" value="${duolingo.streak}" min="0" style="margin:0;width:80px;text-align:center">
+        <button class="btn-primary" style="flex:0 0 auto;padding:8px 14px;font-size:13px" onclick="saveDuolingo()">保存</button>
       </div>
     </div>
     <a class="quick-link" href="https://www.duolingo.com" target="_blank">
@@ -803,18 +808,34 @@ function growthPage(){
     <div class="section-title">阅读</div>
     <div class="growth-card">
       <div class="card-title"><span>📖</span>当前在读</div>
-      ${books.filter(b=>b.progress<100).map(b=>`
-        <div style="font-size:15px;font-weight:500;margin-bottom:4px">${b.title}</div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${b.progress}%"></div></div>
-        <div class="progress-label"><span>进度 ${b.progress}%</span><span>约 ${Math.round(b.pages*b.progress/100)} / ${b.pages} 页</span></div>
-      `).join('')}
+      ${books.filter(b=>b.progress<100).map((b,bi)=>{
+        const realIdx=books.indexOf(b);
+        const cur=b.currentPage!=null?b.currentPage:Math.round(b.pages*b.progress/100);
+        return `
+        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--celadon-ghost)">
+          <div style="font-size:15px;font-weight:500;margin-bottom:6px">${b.title}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${b.progress}%"></div></div>
+          <div class="progress-label"><span>进度 ${b.progress}%</span></div>
+          <div style="display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap">
+            <input type="number" class="project-input" id="bookCur_${realIdx}" value="${cur}" min="0" max="${b.pages}" style="margin:0;width:70px;text-align:center;font-size:13px;padding:6px">
+            <span style="font-size:13px;color:var(--text-sec)">/</span>
+            <input type="number" class="project-input" id="bookTotal_${realIdx}" value="${b.pages}" min="1" style="margin:0;width:70px;text-align:center;font-size:13px;padding:6px">
+            <span style="font-size:12px;color:var(--text-hint)">页</span>
+            <button class="note-action-btn" onclick="updateBookProgress(${realIdx})">更新</button>
+          </div>
+        </div>`;
+      }).join('')}
+      ${books.filter(b=>b.progress>=100).length>0?`
+        <div style="font-size:12px;color:var(--text-hint);margin-top:8px">已读完：${books.filter(b=>b.progress>=100).map(b=>b.title).join('、')}</div>
+      `:''}
       <div style="margin-top:12px;display:flex;gap:8px">
         <input class="project-input" id="bookInput" placeholder="输入书名..." style="margin:0;flex:1">
+        <input type="number" class="project-input" id="bookPagesInput" placeholder="总页数" style="margin:0;width:80px;text-align:center">
         <button class="btn-primary" style="flex:0 0 auto;padding:10px 16px" onclick="addBook()">添加</button>
       </div>
     </div>
     <div class="growth-card">
-      <div class="card-title"><span>📚</span>已读 / 在读</div>
+      <div class="card-title"><span>📚</span>全部书目</div>
       <div>${books.map(b=>`<span class="book-tag">${b.title} ${b.progress<100?b.progress+'%':'✓'}</span>`).join('')}</div>
     </div>
 
@@ -1097,10 +1118,36 @@ function deleteProject(i){
 // ===== Growth Actions =====
 function addBook(){
   const el=document.getElementById('bookInput');
+  const pgEl=document.getElementById('bookPagesInput');
   if(!el||!el.value.trim()) return;
   const books=store.get('books',[]);
-  books.push({title:el.value.trim(),progress:0,pages:200});
+  const pages=pgEl&&parseInt(pgEl.value)>0?parseInt(pgEl.value):200;
+  books.push({title:el.value.trim(),progress:0,pages:pages,currentPage:0});
   store.set('books',books);renderCurrentPage();
+}
+function toggleDuoEdit(){
+  const w=document.getElementById('duoEditWrap');
+  if(w) w.style.display=w.style.display==='none'?'flex':'none';
+}
+function saveDuolingo(){
+  const el=document.getElementById('duoStreakInput');
+  if(!el) return;
+  const val=parseInt(el.value)||0;
+  store.set('duolingo',{streak:val});
+  renderCurrentPage();
+}
+function updateBookProgress(idx){
+  const books=store.get('books',[]);
+  if(!books[idx]) return;
+  const curEl=document.getElementById('bookCur_'+idx);
+  const totalEl=document.getElementById('bookTotal_'+idx);
+  const cur=curEl?parseInt(curEl.value)||0:0;
+  const total=totalEl?parseInt(totalEl.value)||1:1;
+  books[idx].currentPage=cur;
+  books[idx].pages=total;
+  books[idx].progress=Math.min(100,Math.round(cur/total*100));
+  store.set('books',books);
+  renderCurrentPage();
 }
 function saveFitnessLog(){
   const el=document.getElementById('fitnessInput');
