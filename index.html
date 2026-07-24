@@ -195,7 +195,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .note-item:last-child{border-bottom:none}
 .note-dot{width:8px;height:8px;border-radius:50%;background:var(--celadon-light);margin-top:6px;flex-shrink:0}
-.note-text{font-size:14px;line-height:1.5}
+.note-text{font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
 .note-time{font-size:11px;color:var(--text-hint);margin-top:4px}
 .note-actions{display:flex;gap:6px;margin-top:6px}
 .note-action-btn{
@@ -578,19 +578,30 @@ function todoPage(){
       ${dateKeys.map(d=>{
         const s=byDate[d];
         const r=s.total>0?Math.round(s.done/s.total*100):0;
+        const dayTodos=todos.filter(t=>(t.created||'')===d);
         return `
-        <div style="padding:10px 0;border-bottom:1px solid var(--celadon-ghost)">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:13px;font-weight:500">${d}</span>
-            <span style="font-size:12px;color:${r>=70?'#2E7D32':r>=40?'var(--celadon-deep)':'#E65100'};font-weight:500">${r}%</span>
+        <div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--celadon-ghost);cursor:pointer" onclick="toggleHistory(this)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-size:13px;font-weight:500">${d}</span>
+              <span style="font-size:12px;color:${r>=70?'#2E7D32':r>=40?'var(--celadon-deep)':'#E65100'};font-weight:500">${r}%</span>
+            </div>
+            <div style="display:flex;gap:6px;font-size:11px;color:var(--text-hint)">
+              <span>共${s.total}项</span>
+              <span style="color:#2E7D32">✓${s.done}</span>
+              ${s.fail>0?`<span style="color:#E65100">✗${s.fail}</span>`:''}
+              ${s.pending>0?`<span>○${s.pending}</span>`:''}
+            </div>
+            <div class="progress-bar" style="margin-top:6px;height:4px"><div class="progress-fill" style="width:${r}%"></div></div>
           </div>
-          <div style="display:flex;gap:6px;font-size:11px;color:var(--text-hint)">
-            <span>共${s.total}项</span>
-            <span style="color:#2E7D32">✓${s.done}</span>
-            ${s.fail>0?`<span style="color:#E65100">✗${s.fail}</span>`:''}
-            ${s.pending>0?`<span>○${s.pending}</span>`:''}
+          <div class="history-detail" style="display:none;padding:8px 0 4px">
+            ${dayTodos.map(t=>`
+              <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--celadon-ghost)">
+                <span style="font-size:14px;flex-shrink:0">${t.status==='done'?'✅':t.status==='fail'?'❌':'⬜'}</span>
+                <span style="flex:1;line-height:1.5;color:${t.status==='done'?'var(--text-hint)':t.status==='fail'?'var(--text-hint)':'var(--text)'};${t.status!=='pending'?'text-decoration:line-through':''}">${t.text}</span>
+              </div>
+            `).join('')}
           </div>
-          <div class="progress-bar" style="margin-top:6px;height:4px"><div class="progress-fill" style="width:${r}%"></div></div>
         </div>`;
       }).join('')}
     </div>`:''}
@@ -693,7 +704,7 @@ function copywritePage(){
     ${copies.map((c,i)=>`
       <div class="card">
         <div class="card-title"><span>📄</span>${c.title}</div>
-        <div style="font-size:13px;color:var(--text-sec);line-height:1.6">${c.content}</div>
+        <div style="font-size:13px;color:var(--text-sec);line-height:1.6;white-space:pre-wrap;word-break:break-word">${c.content}</div>
         <div style="display:flex;gap:8px;margin-top:10px">
           <span style="font-size:11px;padding:3px 8px;border-radius:6px;background:${c.status==='已发布'?'#E8F5E9':'var(--celadon-ghost)'};color:${c.status==='已发布'?'#2E7D32':'var(--celadon-deep)'}">${c.status}</span>
           <span style="font-size:11px;color:var(--text-hint)">${c.time}</span>
@@ -834,6 +845,15 @@ function growthPage(){
 
 // ===== Create Sub-page State =====
 let currentSubPage='inspire';
+
+// ===== Toggle History Detail =====
+function toggleHistory(el){
+  const detail=el.nextElementSibling;
+  if(detail){
+    const isOpen=detail.style.display!=='none';
+    detail.style.display=isOpen?'none':'block';
+  }
+}
 
 // ===== Navigation =====
 function bottomNav(page,el){
