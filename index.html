@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>一秋的工作台</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --celadon-deep:#3D7A8E; --celadon:#5B9EB5; --celadon-light:#8DC0CC;
+  --celadon-mist:#BCD9E2; --celadon-ghost:#E3EFF3;
+  --bg:#F3F6F7; --card:#FFFFFF; --text:#1E2D35;
+  --text-sec:#6A7F88; --text-hint:#A0B3BA;
+  --shadow:0 1px 8px rgba(61,122,142,.06),0 4px 16px rgba(61,122,142,.04);
+  --shadow-hover:0 2px 12px rgba(61,122,142,.1),0 8px 24px rgba(61,122,142,.06);
+  --radius:18px; --radius-sm:14px;
+  --font:'Inter','Noto Sans SC',-apple-system,sans-serif;
+  --sidebar-w:220px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{display:none}
+
+/* ===== Layout Toggle ===== */
+.layout-toggle{
+  position:fixed;top:16px;right:16px;z-index:999;
+  background:var(--card);border:1.5px solid var(--celadon-mist);
+  border-radius:10px;padding:6px 12px;font-size:11px;font-family:var(--font);
+  color:var(--celadon-deep);cursor:pointer;font-weight:500;
+  box-shadow:var(--shadow);
+}
+
+/* ===== SIDEBAR LAYOUT ===== */
+.sidebar-layout{display:none}
+.sidebar-layout.active-layout{display:flex}
+.sidebar{
+  width:var(--sidebar-w);min-height:100vh;background:var(--card);
+  border-right:1px solid rgba(91,158,181,.08);
+  padding:24px 0;position:fixed;left:0;top:0;z-index:50;
+  display:flex;flex-direction:column;
+}
+.sidebar-brand{padding:0 20px 24px;font-size:17px;font-weight:600;color:var(--celadon-deep);letter-spacing:.3px}
+.sidebar-brand small{display:block;font-size:11px;font-weight:300;color:var(--text-hint);margin-top:2px}
+.sidebar-nav{flex:1}
+.sidebar-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 20px;cursor:pointer;
+  font-size:14px;color:var(--text-sec);
+  border-left:3px solid transparent;
+  transition:all .2s;
+}
+.sidebar-item:hover{background:var(--celadon-ghost);color:var(--text)}
+.sidebar-item.active{
+  background:var(--celadon-ghost);color:var(--celadon-deep);
+  border-left-color:var(--celadon);font-weight:500;
+}
+.sidebar-item .si-icon{font-size:18px;width:24px;text-align:center}
+.sidebar-sub{display:none;padding-left:20px}
+.sidebar-item.active+.sidebar-sub{display:block}
+.sidebar-sub-item{
+  padding:8px 20px 8px 44px;font-size:13px;color:var(--text-hint);
+  cursor:pointer;transition:all .15s;
+}
+.sidebar-sub-item:hover,.sidebar-sub-item.active{color:var(--celadon-deep);font-weight:500}
+.sidebar-main{margin-left:var(--sidebar-w);flex:1;padding:24px 32px;max-width:680px}
+
+/* ===== BOTTOM NAV LAYOUT ===== */
+.bottom-layout{display:none;max-width:480px;margin:0 auto}
+.bottom-layout.active-layout{display:block}
+.bottom-header{padding:20px 20px 12px;position:sticky;top:0;background:var(--bg);z-index:10}
+.bottom-header .header-date{font-size:13px;font-weight:500;color:var(--celadon)}
+.bottom-header .header-title{font-size:24px;font-weight:600;margin-top:4px;letter-spacing:.3px}
+.bottom-header .header-sub{font-size:13px;font-weight:300;color:var(--text-sec);margin-top:2px}
+.bottom-content{padding:0 20px 90px}
+.bottom-nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:1px solid rgba(91,158,181,.06);
+  display:flex;padding:6px 0 env(safe-area-inset-bottom,8px);z-index:100;
+}
+.bnav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:6px 0;cursor:pointer;border:none;background:none;font-family:var(--font);
+}
+.bnav-icon{font-size:22px;color:var(--text-hint);transition:color .2s}
+.bnav-label{font-size:10px;font-weight:500;margin-top:4px;color:var(--text-hint);transition:color .2s}
+.bnav-item.active .bnav-icon,.bnav-item.active .bnav-label{color:var(--celadon-deep)}
+
+/* ===== Shared Content Styles ===== */
+.page{display:none;animation:fadeUp .3s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.section-title{font-size:12px;font-weight:500;color:var(--text-hint);text-transform:uppercase;letter-spacing:1.5px;margin:20px 0 12px}
+.section-title:first-child{margin-top:0}
+
+.card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);border:1px solid rgba(91,158,181,.06);transition:box-shadow .2s}
+.card:active{box-shadow:var(--shadow-hover)}
+.card-title{font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+
+/* ===== Todo Module ===== */
+.todo-input-wrap{
+  background:var(--card);border-radius:var(--radius);padding:16px;
+  box-shadow:var(--shadow);margin-bottom:16px;
+}
+.todo-input-wrap textarea{
+  width:100%;min-height:100px;border:1.5px solid var(--celadon-mist);
+  border-radius:var(--radius-sm);padding:12px;font-size:14px;
+  font-family:var(--font);color:var(--text);resize:vertical;
+  background:var(--bg);line-height:1.6;
+}
+.todo-input-wrap textarea:focus{outline:none;border-color:var(--celadon)}
+.todo-input-wrap textarea::placeholder{color:var(--text-hint)}
+.todo-actions{display:flex;gap:10px;margin-top:12px}
+.btn-primary{
+  flex:1;padding:13px;background:linear-gradient(135deg,var(--celadon) 0%,var(--celadon-deep) 100%);
+  color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;
+  font-weight:500;font-family:var(--font);cursor:pointer;
+  box-shadow:0 4px 14px rgba(61,122,142,.2);transition:all .15s;
+  letter-spacing:.3px;
+}
+.btn-primary:active{transform:scale(.97);box-shadow:0 2px 8px rgba(61,122,142,.25)}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{
+  padding:12px 16px;background:var(--celadon-ghost);color:var(--celadon-deep);
+  border:none;border-radius:var(--radius-sm);font-size:14px;
+  font-weight:500;font-family:var(--font);cursor:pointer;
+}
+
+.todo-list{display:flex;flex-direction:column;gap:10px}
+.todo-item{
+  background:var(--card);border-radius:var(--radius-sm);padding:14px 16px;
+  box-shadow:var(--shadow);display:flex;align-items:flex-start;gap:12px;
+  transition:all .3s;
+}
+.todo-item.done{opacity:.55}
+.todo-item.done .todo-text{text-decoration:line-through;color:var(--text-hint)}
+.todo-item.fail{opacity:.45;background:#FFF8F0}
+.todo-item.fail .todo-text{text-decoration:line-through;color:var(--text-hint)}
+.todo-text{flex:1;font-size:14px;line-height:1.5}
+.todo-btns{display:flex;gap:6px;flex-shrink:0}
+.todo-btn{
+  width:32px;height:32px;border-radius:8px;border:1.5px solid var(--celadon-mist);
+  background:var(--card);cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.todo-btn.check:hover{background:#E8F5E9;border-color:#66BB6A}
+.todo-btn.cross:hover{background:#FFF3E0;border-color:#FFA726}
+.todo-item.done .todo-btn.check{background:var(--celadon);border-color:var(--celadon);color:#fff}
+.todo-item.fail .todo-btn.cross{background:#FFA726;border-color:#FFA726;color:#fff}
+
+.todo-feedback{
+  margin-top:16px;padding:14px 18px;border-radius:var(--radius-sm);
+  font-size:14px;line-height:1.6;display:none;
+  animation:fadeUp .3s ease;
+}
+.todo-feedback.show{display:block}
+.todo-feedback.success{background:#E8F5E9;color:#2E7D32}
+.todo-feedback.comfort{background:#FFF8E1;color:#E65100}
+
+.todo-stats{
+  display:flex;gap:12px;margin-bottom:16px;
+}
+.todo-stat{
+  flex:1;background:var(--card);border-radius:var(--radius-sm);
+  padding:16px;text-align:center;box-shadow:var(--shadow);
+  border:1px solid rgba(91,158,181,.06);
+}
+.todo-stat-num{font-size:28px;font-weight:600;color:var(--celadon-deep)}
+.todo-stat-label{font-size:11px;color:var(--text-sec);margin-top:2px}
+
+/* ===== Create: 灵感 ===== */
+.btn-record{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:16px;
+  background:linear-gradient(135deg,var(--celadon),var(--celadon-deep));
+  color:#fff;border:none;border-radius:var(--radius);font-size:15px;
+  font-weight:500;font-family:var(--font);cursor:pointer;
+  box-shadow:0 4px 16px rgba(74,139,154,.25);
+}
+.btn-record:active{transform:scale(.97)}
+
+.note-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--celadon-ghost);
+}
+.note-item:last-child{border-bottom:none}
+.note-dot{width:8px;height:8px;border-radius:50%;background:var(--celadon-light);margin-top:6px;flex-shrink:0}
+.note-text{font-size:14px;line-height:1.5}
+.note-time{font-size:11px;color:var(--text-hint);margin-top:4px}
+.note-actions{display:flex;gap:6px;margin-top:6px}
+.note-action-btn{
+  font-size:11px;padding:3px 10px;border-radius:6px;
+  border:1px solid var(--celadon-mist);background:var(--card);
+  color:var(--celadon-deep);cursor:pointer;font-family:var(--font);
+}
+.note-action-btn:hover{background:var(--celadon-ghost)}
+
+.inspire-input{
+  width:100%;min-height:80px;border:1.5px solid var(--celadon-mist);
+  border-radius:var(--radius-sm);padding:12px;font-size:14px;
+  font-family:var(--font);color:var(--text);resize:vertical;
+  background:var(--bg);line-height:1.6;margin-top:12px;
+}
+.inspire-input:focus{outline:none;border-color:var(--celadon)}
+
+/* ===== Create: 文案 ===== */
+.copy-item{
+  background:var(--card);border-radius:var(--radius-sm);padding:14px;
+  margin-bottom:10px;box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:12px;
+}
+.copy-from{
+  font-size:11px;padding:2px 8px;border-radius:6px;
+  background:var(--celadon-ghost);color:var(--celadon-deep);
+}
+.copy-title{font-size:14px;font-weight:500;flex:1}
+.copy-status{font-size:11px;color:var(--text-hint)}
+
+/* ===== Create: 视频项目 ===== */
+.project-card{
+  background:var(--card);border-radius:var(--radius-sm);padding:16px;
+  margin-bottom:12px;box-shadow:var(--shadow);
+}
+.project-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.project-thumb{
+  width:48px;height:48px;border-radius:10px;
+  background:var(--celadon-ghost);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.project-name{font-size:14px;font-weight:500}
+.project-meta{font-size:12px;color:var(--text-sec);margin-top:2px}
+.project-status{
+  display:inline-block;font-size:11px;font-weight:500;
+  padding:2px 8px;border-radius:6px;margin-top:6px;
+}
+.status-plan{background:#E3F2FD;color:#1565C0}
+.status-filming{background:#FFF3E0;color:#E65100}
+.status-editing{background:var(--celadon-ghost);color:var(--celadon-deep)}
+.status-published{background:#E8F5E9;color:#2E7D32}
+
+.project-input{
+  width:100%;border:1.5px solid var(--celadon-mist);
+  border-radius:var(--radius-sm);padding:10px;font-size:13px;
+  font-family:var(--font);color:var(--text);background:var(--bg);
+  margin-top:8px;
+}
+.project-input:focus{outline:none;border-color:var(--celadon)}
+
+/* ===== Growth ===== */
+.growth-card{
+  background:var(--card);border-radius:var(--radius);padding:20px;
+  margin-bottom:14px;box-shadow:var(--shadow);
+  border:1px solid rgba(91,158,181,.06);
+}
+.streak-row{display:flex;align-items:center;gap:16px}
+.streak-fire{font-size:36px}
+.streak-num{font-size:32px;font-weight:600;color:var(--celadon-deep)}
+.streak-label{font-size:12px;color:var(--text-sec)}
+
+.progress-bar{height:6px;background:var(--celadon-ghost);border-radius:3px;overflow:hidden;margin-top:10px}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--celadon-light),var(--celadon));transition:width .6s ease}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-hint);margin-top:6px}
+
+.book-tag{
+  display:inline-block;padding:6px 12px;background:var(--celadon-ghost);
+  border-radius:8px;font-size:13px;color:var(--celadon-deep);margin:3px;
+}
+
+.growth-log{
+  padding:10px 0;border-bottom:1px solid var(--celadon-ghost);
+  font-size:13px;line-height:1.5;
+}
+.growth-log:last-child{border-bottom:none}
+.growth-log-time{font-size:11px;color:var(--text-hint)}
+
+/* ===== Homepage Tiles ===== */
+.home-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{
+  background:var(--card);border-radius:var(--radius);padding:20px;
+  box-shadow:var(--shadow);cursor:pointer;
+  border:1px solid rgba(91,158,181,.06);
+  transition:all .2s;position:relative;overflow:hidden;
+}
+.tile:active{box-shadow:var(--shadow-hover);transform:scale(.97)}
+.tile-lg{grid-column:span 2;padding:24px}
+.tile-icon{font-size:28px;margin-bottom:10px}
+.tile-title{font-size:15px;font-weight:600;color:var(--text)}
+.tile-sub{font-size:12px;color:var(--text-sec);margin-top:4px;line-height:1.4}
+.tile-num{font-size:32px;font-weight:600;color:var(--celadon-deep);margin-top:6px}
+.tile-accent{
+  position:absolute;top:0;right:0;width:60px;height:60px;
+  background:linear-gradient(135deg,transparent 50%,var(--celadon-ghost) 50%);
+  border-radius:0 var(--radius) 0 0;
+}
+.home-greeting{margin-bottom:20px}
+.home-greeting-text{font-size:20px;font-weight:600;color:var(--text);line-height:1.4}
+.home-greeting-sub{font-size:13px;color:var(--text-sec);margin-top:4px}
+
+/* ===== Quick Link ===== */
+.quick-link{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:var(--card);border-radius:var(--radius-sm);margin-bottom:10px;
+  box-shadow:var(--shadow);text-decoration:none;color:var(--text);font-size:14px;
+}
+.quick-link:active{background:var(--celadon-ghost)}
+
+/* ===== Create Entry Cards ===== */
+.create-entry-card{
+  display:flex;align-items:center;gap:16px;
+  background:var(--card);border-radius:var(--radius);padding:22px;
+  margin-bottom:14px;box-shadow:var(--shadow);cursor:pointer;
+  transition:all .2s;border:1px solid rgba(91,158,181,.06);
+}
+.create-entry-card:active{border-color:var(--celadon-light);background:var(--celadon-ghost);box-shadow:var(--shadow-hover)}
+.cec-icon{font-size:30px;width:54px;height:54px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--celadon-ghost),#fff);border-radius:16px;flex-shrink:0;border:1px solid rgba(91,158,181,.08)}
+.cec-body{flex:1}
+.cec-title{font-size:16px;font-weight:600;color:var(--text)}
+.cec-desc{font-size:12px;color:var(--text-sec);margin-top:3px}
+.cec-arrow{font-size:20px;color:var(--text-hint)}
+
+/* ===== Modal ===== */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);
+  z-index:200;align-items:flex-end;justify-content:center;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--card);border-radius:20px 20px 0 0;
+  padding:24px;width:100%;max-width:480px;max-height:70vh;
+  overflow-y:auto;animation:slideUp .3s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:16px}
+.modal textarea{
+  width:100%;min-height:120px;border:1.5px solid var(--celadon-mist);
+  border-radius:var(--radius-sm);padding:12px;font-size:14px;
+  font-family:var(--font);color:var(--text);resize:vertical;
+  background:var(--bg);line-height:1.6;
+}
+.modal textarea:focus{outline:none;border-color:var(--celadon)}
+.modal-actions{display:flex;gap:10px;margin-top:14px}
+
+/* ===== Responsive ===== */
+/* 布局切换完全由右上角按钮控制，不依赖屏幕宽度 */
+</style>
+</head>
+<body>
+
+<!-- Layout Toggle -->
+<button class="layout-toggle" onclick="toggleLayout()">切换布局</button>
+
+<!-- ========== SIDEBAR LAYOUT ========== -->
+<div class="sidebar-layout" id="sidebarLayout">
+  <aside class="sidebar">
+    <div class="sidebar-brand">一秋的工作台<small id="sideDate"></small></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-item active" onclick="sideNav('home',this)">
+        <span class="si-icon">🏠</span>主页
+      </div>
+      <div class="sidebar-item" onclick="sideNav('todo',this)">
+        <span class="si-icon">📋</span>待办事项
+      </div>
+      <div class="sidebar-item" onclick="sideNav('create',this)">
+        <span class="si-icon">🎬</span>创作
+      </div>
+      <div class="sidebar-sub" id="sideCreateSub">
+        <div class="sidebar-sub-item active" onclick="subNav('inspire',this)">💡 灵感</div>
+        <div class="sidebar-sub-item" onclick="subNav('copywrite',this)">📝 文案整理</div>
+        <div class="sidebar-sub-item" onclick="subNav('video',this)">🎥 视频项目</div>
+      </div>
+      <div class="sidebar-item" onclick="sideNav('growth',this)">
+        <span class="si-icon">📚</span>个人成长
+      </div>
+    </nav>
+  </aside>
+  <main class="sidebar-main" id="sidebarContent"></main>
+</div>
+
+<!-- ========== BOTTOM NAV LAYOUT ========== -->
+<div class="bottom-layout active-layout" id="bottomLayout">
+  <div class="bottom-header">
+    <div class="header-date" id="todayDate"></div>
+    <div class="header-title">一秋的工作台</div>
+    <div class="header-sub" id="todayQuote"></div>
+  </div>
+  <div class="bottom-content" id="bottomContent"></div>
+  <nav class="bottom-nav">
+    <button class="bnav-item active" onclick="bottomNav('home',this)">
+      <span class="bnav-icon">🏠</span><span class="bnav-label">主页</span>
+    </button>
+    <button class="bnav-item" onclick="bottomNav('todo',this)">
+      <span class="bnav-icon">📋</span><span class="bnav-label">待办</span>
+    </button>
+    <button class="bnav-item" onclick="bottomNav('create',this)">
+      <span class="bnav-icon">🎬</span><span class="bnav-label">创作</span>
+    </button>
+    <button class="bnav-item" onclick="bottomNav('growth',this)">
+      <span class="bnav-icon">📚</span><span class="bnav-label">成长</span>
+    </button>
+  </nav>
+</div>
+
+
+
+<script>
+// ===== Data Store (localStorage) =====
+const store = {
+  get(k,d){try{return JSON.parse(localStorage.getItem('yiqiu_'+k))||d}catch(e){return d}},
+  set(k,v){localStorage.setItem('yiqiu_'+k,JSON.stringify(v))}
+};
+
+// ===== Date & Quote =====
+const now=new Date(), days=['日','一','二','三','四','五','六'];
+const dateStr=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 · 星期${days[now.getDay()]}`;
+document.getElementById('todayDate').textContent=dateStr;
+document.getElementById('sideDate').textContent=dateStr;
+const quotes=['雨过天青云破处','今天想创造点什么？','慢慢来，比较快','做就是了','允许一切发生','世界是我的牡蛎'];
+document.getElementById('todayQuote').textContent=quotes[now.getDate()%quotes.length];
+
+// ===== Layout Toggle =====
+let currentLayout='bottom';
+function toggleLayout(){
+  const bl=document.getElementById('bottomLayout');
+  const sl=document.getElementById('sidebarLayout');
+  if(currentLayout==='bottom'){
+    bl.classList.remove('active-layout');sl.classList.add('active-layout');
+    currentLayout='sidebar'; renderSidebar();
+  }else{
+    sl.classList.remove('active-layout');bl.classList.add('active-layout');
+    currentLayout='bottom'; renderBottom();
+  }
+}
+
+// ===== Homepage =====
+function homePage(){
+  const todos=store.get('todos',[]);
+  const pending=todos.filter(t=>t.status==='pending').length;
+  const done=todos.filter(t=>t.status==='done').length;
+  const notes=store.get('notes',[]);
+  const copies=store.get('copies',[]);
+  const projects=store.get('projects',[]);
+  const books=store.get('books',[]);
+  const duolingo=store.get('duolingo',{streak:30});
+  const fitKeywords=['运动','健身','锻炼','跑步','游泳','攀岩','骑行','瑜伽','跳绳','球','爬楼','走路','拉伸'];
+  const fitTodos=todos.filter(t=>t.status==='done'&&fitKeywords.some(k=>t.text.includes(k)));
+  const fitnessLogs=store.get('fitnessLogs',[]);
+  const now2=new Date();const weekStart=new Date(now2);weekStart.setDate(now2.getDate()-now2.getDay()+1);weekStart.setHours(0,0,0,0);
+  const weekFit=fitTodos.filter(t=>{const d=new Date(t.created);return d>=weekStart}).length+fitnessLogs.filter(l=>{const d=new Date(l.time);return d>=weekStart}).length;
+  const reading=books.find(b=>b.progress<100);
+  const hour=now2.getHours();
+  const greet=hour<6?'夜深了':hour<11?'早上好':hour<14?'中午好':hour<18?'下午好':'晚上好';
+
+  return `
+    <div class="home-greeting">
+      <div class="home-greeting-text">${greet}，一秋 ☁️</div>
+      <div class="home-greeting-sub">${dateStr}</div>
+    </div>
+    <div class="home-tiles">
+      <div class="tile tile-lg" onclick="navTo('todo')">
+        <div class="tile-accent"></div>
+        <div class="tile-icon">📋</div>
+        <div class="tile-title">待办事项</div>
+        <div style="display:flex;gap:16px;margin-top:10px">
+          <div><span style="font-size:24px;font-weight:600;color:var(--celadon-deep)">${pending}</span><span style="font-size:12px;color:var(--text-sec);margin-left:4px">待完成</span></div>
+          <div><span style="font-size:24px;font-weight:600;color:#2E7D32">${done}</span><span style="font-size:12px;color:var(--text-sec);margin-left:4px">已完成</span></div>
+        </div>
+      </div>
+      <div class="tile" onclick="navTo('create','inspire')">
+        <div class="tile-accent"></div>
+        <div class="tile-icon">💡</div>
+        <div class="tile-title">灵感</div>
+        <div class="tile-sub">${notes.length>0?notes.length+'条随笔':'记录第一条灵感'}</div>
+      </div>
+      <div class="tile" onclick="navTo('create','copywrite')">
+        <div class="tile-accent"></div>
+        <div class="tile-icon">📝</div>
+        <div class="tile-title">文案</div>
+        <div class="tile-sub">${copies.length>0?copies.length+'篇文案':'开始整理文案'}</div>
+      </div>
+      <div class="tile" onclick="navTo('create','video')">
+        <div class="tile-accent"></div>
+        <div class="tile-icon">🎬</div>
+        <div class="tile-title">视频项目</div>
+        <div class="tile-sub">${projects.length>0?projects.length+'个项目':'创建第一个项目'}</div>
+      </div>
+      <div class="tile" onclick="navTo('growth')">
+        <div class="tile-accent"></div>
+        <div class="tile-icon">🏋️</div>
+        <div class="tile-title">本周健身</div>
+        <div class="tile-num">${weekFit}</div>
+      </div>
+      <div class="tile" onclick="navTo('growth')">
+        <div class="tile-accent"></div>
+        <div class="tile-icon">📖</div>
+        <div class="tile-title">${reading?reading.title:'阅读'}</div>
+        <div class="tile-sub">${reading?reading.progress+'%':'暂无在读'}</div>
+      </div>
+      <div class="tile" onclick="window.open('https://www.duolingo.com','_blank')">
+        <div class="tile-accent"></div>
+        <div class="tile-icon">🦉</div>
+        <div class="tile-title">多邻国</div>
+        <div class="tile-num">${duolingo.streak}</div>
+        <div class="tile-sub">连续打卡</div>
+      </div>
+    </div>
+  `;
+}
+
+// ===== Page Content Generators =====
+function todoPage(){
+  const todos=store.get('todos',[]);
+  const done=todos.filter(t=>t.status==='done').length;
+  const failed=todos.filter(t=>t.status==='fail').length;
+  const pending=todos.filter(t=>t.status==='pending').length;
+  const total=todos.length;
+  const rate=total>0?Math.round(done/total*100):0;
+
+  // Group by date for history
+  const byDate={};
+  todos.forEach(t=>{
+    const d=t.created||'未知日期';
+    if(!byDate[d]) byDate[d]={total:0,done:0,fail:0,pending:0};
+    byDate[d].total++;
+    byDate[d][t.status]++;
+  });
+  const dateKeys=Object.keys(byDate).sort().reverse();
+
+  return `
+    <div class="section-title">输入待办</div>
+    <div class="todo-input-wrap">
+      <textarea id="todoInput" placeholder="直接粘贴或输入，每行一条，例如：&#10;1️⃣ 红楼梦主剧部分剪完&#10;2️⃣ 多邻国&#10;3️⃣ 看书"></textarea>
+      <div class="todo-actions">
+        <button class="btn-primary" onclick="parseTodos()">✨ 自动解析并创建</button>
+        <button class="btn-secondary" onclick="document.getElementById('todoInput').value=''">清空</button>
+      </div>
+    </div>
+    <div class="todo-stats">
+      <div class="todo-stat"><div class="todo-stat-num">${pending}</div><div class="todo-stat-label">待完成</div></div>
+      <div class="todo-stat"><div class="todo-stat-num" style="color:#2E7D32">${done}</div><div class="todo-stat-label">已完成</div></div>
+      <div class="todo-stat"><div class="todo-stat-num" style="color:#E65100">${failed}</div><div class="todo-stat-label">未完成</div></div>
+    </div>
+    ${total>0?`
+    <div class="card" style="text-align:center;padding:14px">
+      <div style="font-size:13px;color:var(--text-sec);margin-bottom:6px">总完成率</div>
+      <div style="font-size:36px;font-weight:600;color:${rate>=70?'#2E7D32':rate>=40?'var(--celadon-deep)':'#E65100'}">${rate}%</div>
+      <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:${rate}%;${rate>=70?'background:linear-gradient(90deg,#81C784,#2E7D32)':rate>=40?'':'background:linear-gradient(90deg,#FFB74D,#E65100)'}"></div></div>
+    </div>`:''}
+    <div class="section-title">待办列表</div>
+    <div class="todo-list" id="todoList">
+      ${todos.length===0?'<div style="text-align:center;padding:30px;color:var(--text-hint);font-size:13px">还没有待办，上面的输入框开始吧 ✨</div>':''}
+      ${todos.map((t,i)=>`
+        <div class="todo-item ${t.status==='done'?'done':''} ${t.status==='fail'?'fail':''}">
+          <div class="todo-text">${t.text}</div>
+          <div class="todo-btns">
+            <button class="todo-btn check" onclick="markTodo(${i},'done')" title="完成">✓</button>
+            <button class="todo-btn cross" onclick="markTodo(${i},'fail')" title="没做">✗</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="todo-feedback" id="todoFeedback"></div>
+    ${todos.length>0?`<div style="margin-top:14px;text-align:center"><button class="btn-secondary" onclick="clearDoneTodos()" style="font-size:12px;color:var(--text-hint)">清除已完成</button></div>`:''}
+
+    ${dateKeys.length>0?`
+    <div class="section-title" style="margin-top:28px">📊 历史记录</div>
+    <div class="card">
+      ${dateKeys.map(d=>{
+        const s=byDate[d];
+        const r=s.total>0?Math.round(s.done/s.total*100):0;
+        return `
+        <div style="padding:10px 0;border-bottom:1px solid var(--celadon-ghost)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">${d}</span>
+            <span style="font-size:12px;color:${r>=70?'#2E7D32':r>=40?'var(--celadon-deep)':'#E65100'};font-weight:500">${r}%</span>
+          </div>
+          <div style="display:flex;gap:6px;font-size:11px;color:var(--text-hint)">
+            <span>共${s.total}项</span>
+            <span style="color:#2E7D32">✓${s.done}</span>
+            ${s.fail>0?`<span style="color:#E65100">✗${s.fail}</span>`:''}
+            ${s.pending>0?`<span>○${s.pending}</span>`:''}
+          </div>
+          <div class="progress-bar" style="margin-top:6px;height:4px"><div class="progress-fill" style="width:${r}%"></div></div>
+        </div>`;
+      }).join('')}
+    </div>`:''}
+  `;
+}
+
+function createMainPage(){
+  return `
+    <div class="section-title">创作</div>
+    <div class="create-entry-card" onclick="enterSubPage('inspire')">
+      <div class="cec-icon">💡</div>
+      <div class="cec-body">
+        <div class="cec-title">灵感</div>
+        <div class="cec-desc">录音转文字，随时记录灵感</div>
+      </div>
+      <div class="cec-arrow">›</div>
+    </div>
+    <div class="create-entry-card" onclick="enterSubPage('copywrite')">
+      <div class="cec-icon">📝</div>
+      <div class="cec-body">
+        <div class="cec-title">文案整理</div>
+        <div class="cec-desc">把灵感整理成可发布的文案</div>
+      </div>
+      <div class="cec-arrow">›</div>
+    </div>
+    <div class="create-entry-card" onclick="enterSubPage('video')">
+      <div class="cec-icon">🎥</div>
+      <div class="cec-body">
+        <div class="cec-title">视频项目规划</div>
+        <div class="cec-desc">管理拍摄计划、进度和发布状态</div>
+      </div>
+      <div class="cec-arrow">›</div>
+    </div>
+  `;
+}
+
+function createPage(sub){
+  if(sub==='main') return createMainPage();
+  const backBtn=`<button class="btn-secondary" onclick="enterSubPage('main')" style="margin-bottom:16px;font-size:13px;display:flex;align-items:center;gap:4px">← 返回创作</button>`;
+  if(sub==='copywrite') return backBtn+copywritePage();
+  if(sub==='video') return backBtn+videoPage();
+  return backBtn+inspirePage();
+}
+
+function inspirePage(){
+  const notes=store.get('notes',[]);
+  return `
+    <div class="section-title">记录灵感</div>
+    <button class="btn-record" onclick="alert('录音功能待接入')">🎙 录音转文字</button>
+    <textarea class="inspire-input" id="quickNote" placeholder="或者直接打字记录灵感..."></textarea>
+    <div style="margin-top:10px;display:flex;gap:10px">
+      <button class="btn-primary" style="flex:1" onclick="saveNote()">保存随笔</button>
+    </div>
+    <div class="section-title">我的随笔</div>
+    <div class="card">
+      ${notes.length===0?'<div style="text-align:center;padding:20px;color:var(--text-hint);font-size:13px">还没有随笔，记录第一条吧</div>':''}
+      ${notes.map((n,i)=>`
+        <div class="note-item">
+          <div class="note-dot"></div>
+          <div style="flex:1">
+            <div class="note-text">${n.text}</div>
+            <div class="note-time">${n.time}</div>
+            <div class="note-actions">
+              <button class="note-action-btn" onclick="moveToCopywrite(${i})">→ 转入文案整理</button>
+              <button class="note-action-btn" onclick="deleteNote(${i})">删除</button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function copywritePage(){
+  const copies=store.get('copies',[]);
+  const notes=store.get('notes',[]);
+  return `
+    <div class="section-title">文案整理</div>
+    <div class="card">
+      <div class="card-title"><span>📝</span>新建文案</div>
+      <input class="project-input" id="copyTitle" placeholder="文案标题..." style="margin-top:0">
+      <textarea class="inspire-input" id="copyContent" placeholder="文案内容..." style="min-height:60px"></textarea>
+      <div style="margin-top:10px">
+        <button class="btn-primary" onclick="saveCopy()">保存文案</button>
+      </div>
+    </div>
+    ${notes.length>0?`
+    <div class="section-title">从随笔转入</div>
+    <div class="card">
+      ${notes.map((n,i)=>`
+        <div class="copy-item">
+          <span class="copy-from">随笔</span>
+          <span class="copy-title">${n.text.substring(0,30)}${n.text.length>30?'...':''}</span>
+          <button class="note-action-btn" onclick="moveToCopywrite(${i})">转入</button>
+        </div>
+      `).join('')}
+    </div>`:''}
+    <div class="section-title">已有文案 (${copies.length})</div>
+    ${copies.length===0?'<div style="text-align:center;padding:20px;color:var(--text-hint);font-size:13px">还没有文案</div>':''}
+    ${copies.map((c,i)=>`
+      <div class="card">
+        <div class="card-title"><span>📄</span>${c.title}</div>
+        <div style="font-size:13px;color:var(--text-sec);line-height:1.6">${c.content}</div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <span style="font-size:11px;padding:3px 8px;border-radius:6px;background:${c.status==='已发布'?'#E8F5E9':'var(--celadon-ghost)'};color:${c.status==='已发布'?'#2E7D32':'var(--celadon-deep)'}">${c.status}</span>
+          <span style="font-size:11px;color:var(--text-hint)">${c.time}</span>
+          ${c.from?'<span class="copy-from">来自随笔</span>':''}
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function videoPage(){
+  const projects=store.get('projects',[]);
+  return `
+    <div class="section-title">新建视频项目</div>
+    <div class="card">
+      <input class="project-input" id="projName" placeholder="项目名称..." style="margin-top:0">
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <select class="project-input" id="projStatus" style="margin-top:0;flex:1">
+          <option value="规划中">📋 规划中</option>
+          <option value="拍摄中">🎬 拍摄中</option>
+          <option value="剪辑中">✂️ 剪辑中</option>
+          <option value="已发布">✅ 已发布</option>
+        </select>
+      </div>
+      <textarea class="inspire-input" id="projNote" placeholder="项目备注、发布计划..." style="min-height:60px"></textarea>
+      <div style="margin-top:10px"><button class="btn-primary" onclick="saveProject()">创建项目</button></div>
+    </div>
+    <div class="section-title">项目列表 (${projects.length})</div>
+    ${projects.length===0?'<div style="text-align:center;padding:20px;color:var(--text-hint);font-size:13px">还没有视频项目</div>':''}
+    ${projects.map((p,i)=>`
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-thumb">${p.emoji||'🎬'}</div>
+          <div style="flex:1">
+            <div class="project-name">${p.name}</div>
+            <div class="project-meta">${p.time}</div>
+            <span class="project-status status-${p.status==='规划中'?'plan':p.status==='拍摄中'?'filming':p.status==='剪辑中'?'editing':'published'}">${p.status}</span>
+          </div>
+        </div>
+        ${p.note?`<div style="font-size:13px;color:var(--text-sec);line-height:1.5;margin-top:4px">${p.note}</div>`:''}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <select class="project-input" onchange="updateProjStatus(${i},this.value)" style="margin:0;flex:1;font-size:12px;padding:6px 8px">
+            <option ${p.status==='规划中'?'selected':''}>规划中</option>
+            <option ${p.status==='拍摄中'?'selected':''}>拍摄中</option>
+            <option ${p.status==='剪辑中'?'selected':''}>剪辑中</option>
+            <option ${p.status==='已发布'?'selected':''}>已发布</option>
+          </select>
+          <button class="btn-secondary" onclick="deleteProject(${i})" style="font-size:12px;padding:6px 12px">删除</button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function growthPage(){
+  const books=store.get('books',[{title:'纳瓦尔宝典',progress:62,pages:290}]);
+  const duolingo=store.get('duolingo',{streak:30});
+  const fitnessLogs=store.get('fitnessLogs',[]);
+
+  // Scan completed todos for fitness keywords
+  const fitKeywords=['运动','健身','锻炼','跑步','游泳','攀岩','骑行','瑜伽','跳绳','球','爬楼','走路','拉伸'];
+  const todos=store.get('todos',[]);
+  const fitTodos=todos.filter(t=>t.status==='done'&&fitKeywords.some(k=>t.text.includes(k)));
+
+  // Calculate this week and this month
+  const now2=new Date();
+  const weekStart=new Date(now2);weekStart.setDate(now2.getDate()-now2.getDay()+1);weekStart.setHours(0,0,0,0);
+  const monthStart=new Date(now2.getFullYear(),now2.getMonth(),1);
+
+  const weekCount=fitTodos.filter(t=>{const d=new Date(t.created);return d>=weekStart}).length+fitnessLogs.filter(l=>{const d=new Date(l.time);return d>=weekStart}).length;
+  const monthCount=fitTodos.filter(t=>{const d=new Date(t.created);return d>=monthStart}).length+fitnessLogs.filter(l=>{const d=new Date(l.time);return d>=monthStart}).length;
+
+  // All fitness records combined
+  const allFitRecords=[
+    ...fitTodos.map(t=>({text:t.text,time:t.created,source:'待办'})),
+    ...fitnessLogs.map(l=>({text:l.text,time:l.time,source:'记录'}))
+  ].sort((a,b)=>new Date(b.time)-new Date(a.time));
+
+  return `
+    <div class="section-title">英语学习</div>
+    <div class="growth-card">
+      <div class="streak-row">
+        <div class="streak-fire">🦉</div>
+        <div>
+          <div class="streak-num">${duolingo.streak}</div>
+          <div class="streak-label">多邻国连续打卡天数</div>
+        </div>
+      </div>
+    </div>
+    <a class="quick-link" href="https://www.duolingo.com" target="_blank">
+      <span style="font-size:20px">🦉</span><span>打开多邻国</span><span style="margin-left:auto;color:var(--text-hint)">↗</span>
+    </a>
+
+    <div class="section-title">阅读</div>
+    <div class="growth-card">
+      <div class="card-title"><span>📖</span>当前在读</div>
+      ${books.filter(b=>b.progress<100).map(b=>`
+        <div style="font-size:15px;font-weight:500;margin-bottom:4px">${b.title}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${b.progress}%"></div></div>
+        <div class="progress-label"><span>进度 ${b.progress}%</span><span>约 ${Math.round(b.pages*b.progress/100)} / ${b.pages} 页</span></div>
+      `).join('')}
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <input class="project-input" id="bookInput" placeholder="输入书名..." style="margin:0;flex:1">
+        <button class="btn-primary" style="flex:0 0 auto;padding:10px 16px" onclick="addBook()">添加</button>
+      </div>
+    </div>
+    <div class="growth-card">
+      <div class="card-title"><span>📚</span>已读 / 在读</div>
+      <div>${books.map(b=>`<span class="book-tag">${b.title} ${b.progress<100?b.progress+'%':'✓'}</span>`).join('')}</div>
+    </div>
+
+    <div class="section-title">🏋️ 健身统计</div>
+    <div style="display:flex;gap:12px;margin-bottom:14px">
+      <div class="todo-stat"><div class="todo-stat-num" style="color:var(--celadon-deep)">${weekCount}</div><div class="todo-stat-label">本周健身</div></div>
+      <div class="todo-stat"><div class="todo-stat-num" style="color:var(--celadon-deep)">${monthCount}</div><div class="todo-stat-label">本月健身</div></div>
+    </div>
+    <div class="growth-card">
+      <div style="display:flex;gap:8px">
+        <input class="project-input" id="fitnessInput" placeholder="记录一次健身，如：攀岩1小时..." style="margin:0;flex:1">
+        <button class="btn-primary" style="flex:0 0 auto;padding:10px 16px" onclick="saveFitnessLog()">记录</button>
+      </div>
+    </div>
+    ${allFitRecords.length>0?`
+    <div class="growth-card">
+      <div class="card-title"><span>📊</span>健身记录</div>
+      ${allFitRecords.slice(0,20).map(r=>`
+        <div class="growth-log">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;padding:2px 6px;border-radius:4px;background:${r.source==='待办'?'var(--celadon-ghost)':'#FFF3E0'};color:${r.source==='待办'?'var(--celadon-deep)':'#E65100'}">${r.source}</span>
+            <span>${r.text}</span>
+          </div>
+          <div class="growth-log-time">${r.time}</div>
+        </div>
+      `).join('')}
+    </div>`:'<div style="text-align:center;padding:20px;color:var(--text-hint);font-size:13px">还没有健身记录<br><span style="font-size:11px">完成待办中的运动项或手动记录都会出现在这里</span></div>'}
+  `;
+}
+
+// ===== Create Sub-page State =====
+let currentSubPage='inspire';
+
+// ===== Navigation =====
+function bottomNav(page,el){
+  document.querySelectorAll('.bnav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  if(page==='home'){renderBottomContent('home');return;}
+  if(page==='create'){currentSubPage='main';renderBottomContent('create');return;}
+  renderBottomContent(page);
+}
+function navTo(page,sub){
+  if(page==='create'&&sub){currentSubPage=sub;}
+  else if(page==='create'){currentSubPage='main';}
+  // update bottom nav active state
+  document.querySelectorAll('.bnav-item').forEach(n=>n.classList.remove('active'));
+  const idx={home:0,todo:1,create:2,growth:3}[page];
+  if(idx!==undefined) document.querySelectorAll('.bnav-item')[idx].classList.add('active');
+  renderBottomContent(page==='create'? 'create' : page);
+}
+function enterSubPage(sub){
+  currentSubPage=sub;
+  renderBottomContent('create');
+}
+
+function renderBottom(){renderBottomContent('todo')}
+function renderBottomContent(page){
+  const c=document.getElementById('bottomContent');
+  if(page==='home') c.innerHTML=homePage();
+  else if(page==='todo') c.innerHTML=todoPage();
+  else if(page==='create') c.innerHTML=createPage(currentSubPage);
+  else if(page==='growth') c.innerHTML=growthPage();
+}
+
+function sideNav(page,el){
+  document.querySelectorAll('.sidebar-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  if(page==='home') renderSidebarContent('home');
+  else if(page==='create'){currentSubPage='main';renderSidebarContent('create')}
+  else renderSidebarContent(page);
+}
+function subNav(sub,el){
+  document.querySelectorAll('.sidebar-sub-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  currentSubPage=sub;
+  renderSidebarContent('create');
+}
+function renderSidebar(){renderSidebarContent('todo')}
+function renderSidebarContent(page){
+  const c=document.getElementById('sidebarContent');
+  if(page==='home') c.innerHTML=homePage();
+  else if(page==='todo') c.innerHTML=todoPage();
+  else if(page==='create') c.innerHTML=createPage(currentSubPage);
+  else if(page==='growth') c.innerHTML=growthPage();
+}
+
+function renderCurrentPage(){
+  if(currentLayout==='bottom') renderBottomContent(getCurrentBottomPage());
+  else renderSidebarContent(getCurrentSidePage());
+}
+function getCurrentBottomPage(){
+  const active=document.querySelector('.bnav-item.active .bnav-label');
+  if(!active) return 'todo';
+  if(active.textContent.includes('待办')) return 'todo';
+  if(active.textContent.includes('创作')) return 'create';
+  if(active.textContent.includes('成长')) return 'growth';
+  return 'todo';
+}
+function getCurrentSidePage(){
+  const active=document.querySelector('.sidebar-item.active');
+  if(!active) return 'todo';
+  const t=active.textContent.trim();
+  if(t.includes('待办')) return 'todo';
+  if(t.includes('创作')) return 'create';
+  if(t.includes('成长')) return 'growth';
+  return 'todo';
+}
+
+// ===== Todo Actions =====
+function parseTodos(){
+  const raw=document.getElementById('todoInput').value.trim();
+  if(!raw) return;
+  const lines=raw.split('\n').filter(l=>l.trim());
+  const todos=store.get('todos',[]);
+  lines.forEach(l=>{
+    let text=l.replace(/^[\s\d️⃣🔹🔸▪▸•·、.，,\-]+/,'').replace(/^\d+[.、)\]]+/,'').trim();
+    if(text) todos.push({text,status:'pending',created:now.toLocaleDateString()});
+  });
+  store.set('todos',todos);
+  document.getElementById('todoInput').value='';
+  renderCurrentPage();
+}
+function markTodo(i,status){
+  const todos=store.get('todos',[]);
+  todos[i].status=status;
+  store.set('todos',todos);
+  renderCurrentPage();
+  setTimeout(()=>{
+    const fb=document.getElementById('todoFeedback');
+    if(!fb) return;
+    if(status==='done'){
+      const msgs=['太棒了！又完成一项 ✨','做得好！你真的很靠谱 💪','漂亮！继续冲 🌟','又近了一步，了不起 🎯'];
+      fb.className='todo-feedback show success';
+      fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    }else{
+      const msgs=['没关系，休息也是一种前进 ☁️','今天不适合做这个，明天再试试 🌿','没做完不代表没努力，放过自己 🍃','已经做了很多了，这一条不算也没事 🤍'];
+      fb.className='todo-feedback show comfort';
+      fb.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    }
+  },100);
+}
+function clearDoneTodos(){
+  let todos=store.get('todos',[]);
+  todos=todos.filter(t=>t.status==='pending');
+  store.set('todos',todos);
+  renderCurrentPage();
+}
+
+// ===== Note Actions =====
+function saveNote(){
+  const el=document.getElementById('quickNote');
+  if(!el||!el.value.trim()) return;
+  const notes=store.get('notes',[]);
+  notes.unshift({text:el.value.trim(),time:new Date().toLocaleString(),from:'direct'});
+  store.set('notes',notes);
+  renderCurrentPage();
+}
+function deleteNote(i){
+  const notes=store.get('notes',[]);notes.splice(i,1);store.set('notes',notes);renderCurrentPage();
+}
+function moveToCopywrite(i){
+  const notes=store.get('notes',[]);
+  const n=notes[i];
+  const copies=store.get('copies',[]);
+  copies.unshift({title:n.text.substring(0,20),content:n.text,status:'待整理',time:n.time,from:'随笔'});
+  store.set('copies',copies);
+  notes.splice(i,1);store.set('notes',notes);
+  currentSubPage='copywrite';
+  renderCurrentPage();
+}
+
+// ===== Copywrite Actions =====
+function saveCopy(){
+  const t=document.getElementById('copyTitle');
+  const c=document.getElementById('copyContent');
+  if(!c||!c.value.trim()) return;
+  const copies=store.get('copies',[]);
+  copies.unshift({title:t&&t.value.trim()||'未命名文案',content:c.value.trim(),status:'待整理',time:new Date().toLocaleString()});
+  store.set('copies',copies);
+  renderCurrentPage();
+}
+
+// ===== Project Actions =====
+function saveProject(){
+  const n=document.getElementById('projName');
+  const s=document.getElementById('projStatus');
+  const note=document.getElementById('projNote');
+  if(!n||!n.value.trim()) return;
+  const projects=store.get('projects',[]);
+  const emojis={'规划中':'📋','拍摄中':'🎬','剪辑中':'✂️','已发布':'✅'};
+  projects.unshift({name:n.value.trim(),status:s.value,note:note?note.value.trim():'',time:new Date().toLocaleDateString(),emoji:emojis[s.value]});
+  store.set('projects',projects);
+  renderCurrentPage();
+}
+function updateProjStatus(i,v){
+  const projects=store.get('projects',[]);
+  const emojis={'规划中':'📋','拍摄中':'🎬','剪辑中':'✂️','已发布':'✅'};
+  projects[i].status=v;projects[i].emoji=emojis[v];
+  store.set('projects',projects);renderCurrentPage();
+}
+function deleteProject(i){
+  const projects=store.get('projects',[]);projects.splice(i,1);store.set('projects',projects);renderCurrentPage();
+}
+
+// ===== Growth Actions =====
+function addBook(){
+  const el=document.getElementById('bookInput');
+  if(!el||!el.value.trim()) return;
+  const books=store.get('books',[]);
+  books.push({title:el.value.trim(),progress:0,pages:200});
+  store.set('books',books);renderCurrentPage();
+}
+function saveFitnessLog(){
+  const el=document.getElementById('fitnessInput');
+  if(!el||!el.value.trim()) return;
+  const logs=store.get('fitnessLogs',[]);
+  logs.unshift({text:el.value.trim(),time:new Date().toLocaleString()});
+  store.set('fitnessLogs',logs);renderCurrentPage();
+}
+
+// ===== Initial Render =====
+renderBottomContent('home');
+</script>
+</body>
+</html>
