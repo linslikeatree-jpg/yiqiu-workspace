@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>一秋的工作台</title>
-<link rel="icon" type="image/svg+xml" href="icon.svg">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-title" content="一秋工作台">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -448,7 +448,7 @@ function homePage(){
   const copies=store.get('copies',[]);
   const projects=store.get('projects',[]);
   const books=store.get('books',[]);
-  const duolingo=store.get('duolingo',{streak:30});
+  const duolingo=store.get('duolingo',{streak:15});
   const fitKeywords=['运动','健身','锻炼','跑步','游泳','攀岩','骑行','瑜伽','跳绳','球','爬楼','走路','拉伸'];
   const fitTodos=todos.filter(t=>t.status==='done'&&fitKeywords.some(k=>t.text.includes(k)));
   const fitnessLogs=store.get('fitnessLogs',[]);
@@ -747,7 +747,7 @@ function videoPage(){
 
 function growthPage(){
   const books=store.get('books',[{title:'纳瓦尔宝典',progress:62,pages:290}]);
-  const duolingo=store.get('duolingo',{streak:30});
+  const duolingo=store.get('duolingo',{streak:15});
   const fitnessLogs=store.get('fitnessLogs',[]);
 
   // Scan completed todos for fitness keywords
