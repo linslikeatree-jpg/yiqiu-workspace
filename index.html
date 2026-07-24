@@ -642,6 +642,7 @@ function createPage(sub){
   if(sub==='main') return createMainPage();
   const backBtn=`<button class="btn-secondary" onclick="enterSubPage('main')" style="margin-bottom:16px;font-size:13px;display:flex;align-items:center;gap:4px">← 返回创作</button>`;
   if(sub==='copywrite') return backBtn+copywritePage();
+  if(sub==='edit') return editCopywritePage();
   if(sub==='video') return backBtn+videoPage();
   return backBtn+inspirePage();
 }
@@ -696,13 +697,14 @@ function copywritePage(){
           <span class="copy-from">随笔</span>
           <span class="copy-title">${n.text.substring(0,30)}${n.text.length>30?'...':''}</span>
           <button class="note-action-btn" onclick="moveToCopywrite(${i})">转入</button>
+              <button class="note-action-btn" onclick="event.stopPropagation();copyNoteText(${i})">复制</button>
         </div>
       `).join('')}
     </div>`:''}
     <div class="section-title">已有文案 (${copies.length})</div>
     ${copies.length===0?'<div style="text-align:center;padding:20px;color:var(--text-hint);font-size:13px">还没有文案</div>':''}
     ${copies.map((c,i)=>`
-      <div class="card">
+      <div class="card" style="cursor:pointer" onclick="editCopywrite(${i})">
         <div class="card-title"><span>📄</span>${c.title}</div>
         <div style="font-size:13px;color:var(--text-sec);line-height:1.6;white-space:pre-wrap;word-break:break-word">${c.content}</div>
         <div style="display:flex;gap:8px;margin-top:10px">
@@ -845,6 +847,7 @@ function growthPage(){
 
 // ===== Create Sub-page State =====
 let currentSubPage='inspire';
+let editingCopyIndex=-1;
 
 // ===== Toggle History Detail =====
 function toggleHistory(el){
@@ -991,6 +994,71 @@ function moveToCopywrite(i){
   notes.splice(i,1);store.set('notes',notes);
   currentSubPage='copywrite';
   renderCurrentPage();
+}
+
+// ===== Copy Note Copy =====
+function copyNoteText(i){
+  const notes=store.get('notes',[]);
+  if(!notes[i]) return;
+  navigator.clipboard.writeText(notes[i].text).then(()=>{
+    alert('已复制到剪贴板');
+  }).catch(()=>{
+    // fallback
+    const ta=document.createElement('textarea');
+    ta.value=notes[i].text;document.body.appendChild(ta);
+    ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    alert('已复制到剪贴板');
+  });
+}
+
+// ===== Edit Copywrite =====
+function editCopywrite(i){
+  editingCopyIndex=i;
+  enterSubPage('edit');
+}
+
+function editCopywritePage(){
+  const copies=store.get('copies',[]);
+  const c=copies[editingCopyIndex];
+  if(!c) return '<div>文案不存在</div>';
+  const backBtn=`<button class="btn-secondary" onclick="enterSubPage('copywrite')" style="margin-bottom:16px;font-size:13px;display:flex;align-items:center;gap:4px">← 返回文案</button>`;
+  return backBtn+`
+    <div class="section-title">编辑文案</div>
+    <div class="card">
+      <input class="project-input" id="editCopyTitle" value="${c.title.replace(/"/g,'&quot;')}" style="margin-top:0;font-size:15px;font-weight:500">
+      <textarea class="inspire-input" id="editCopyContent" style="min-height:200px">${c.content}</textarea>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <select class="project-input" id="editCopyStatus" style="margin-top:0;flex:1">
+          <option ${c.status==='待整理'?'selected':''}>待整理</option>
+          <option ${c.status==='已发布'?'selected':''}>已发布</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn-primary" style="flex:1" onclick="saveEditCopy()">保存修改</button>
+        <button class="btn-secondary" onclick="deleteCopywrite(${editingCopyIndex})" style="color:#E65100">删除</button>
+      </div>
+    </div>
+  `;
+}
+
+function saveEditCopy(){
+  const copies=store.get('copies',[]);
+  if(editingCopyIndex<0||editingCopyIndex>=copies.length) return;
+  const t=document.getElementById('editCopyTitle');
+  const c=document.getElementById('editCopyContent');
+  const s=document.getElementById('editCopyStatus');
+  if(t) copies[editingCopyIndex].title=t.value.trim()||'未命名文案';
+  if(c) copies[editingCopyIndex].content=c.value.trim();
+  if(s) copies[editingCopyIndex].status=s.value;
+  store.set('copies',copies);
+  enterSubPage('copywrite');
+}
+
+function deleteCopywrite(i){
+  if(!confirm('确定删除这篇文案？')) return;
+  const copies=store.get('copies',[]);
+  copies.splice(i,1);store.set('copies',copies);
+  enterSubPage('copywrite');
 }
 
 // ===== Copywrite Actions =====
