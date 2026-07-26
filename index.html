@@ -654,8 +654,7 @@ function inspirePage(){
   const notes=store.get('notes',[]);
   return `
     <div class="section-title">记录灵感</div>
-    <button class="btn-record" onclick="alert('录音功能待接入')">🎙 录音转文字</button>
-    <textarea class="inspire-input" id="quickNote" placeholder="或者直接打字记录灵感..."></textarea>
+    <textarea class="inspire-input" id="quickNote" placeholder="打字记录灵感..."></textarea>
     <div style="margin-top:10px;display:flex;gap:10px">
       <button class="btn-primary" style="flex:1" onclick="saveNote()">保存随笔</button>
     </div>
@@ -669,7 +668,9 @@ function inspirePage(){
             <div class="note-text">${n.text}</div>
             <div class="note-time">${n.time}</div>
             <div class="note-actions">
-              <button class="note-action-btn" onclick="moveToCopywrite(${i})">→ 转入文案整理</button>
+              <button class="note-action-btn" onclick="moveToCopywrite(${i})">→ 转入文案</button>
+              <button class="note-action-btn" onclick="event.stopPropagation();copyNoteText(${i})">复制</button>
+              <button class="note-action-btn" onclick="event.stopPropagation();shareToNotes(${i})">存入备忘录</button>
               <button class="note-action-btn" onclick="deleteNote(${i})">删除</button>
             </div>
           </div>
@@ -710,10 +711,12 @@ function copywritePage(){
       <div class="card" style="cursor:pointer" onclick="editCopywrite(${i})">
         <div class="card-title"><span>📄</span>${c.title}</div>
         <div style="font-size:13px;color:var(--text-sec);line-height:1.6;white-space:pre-wrap;word-break:break-word">${c.content}</div>
-        <div style="display:flex;gap:8px;margin-top:10px">
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
           <span style="font-size:11px;padding:3px 8px;border-radius:6px;background:${c.status==='已发布'?'#E8F5E9':'var(--celadon-ghost)'};color:${c.status==='已发布'?'#2E7D32':'var(--celadon-deep)'}">${c.status}</span>
           <span style="font-size:11px;color:var(--text-hint)">${c.time}</span>
           ${c.from?'<span class="copy-from">来自随笔</span>':''}
+          <button class="note-action-btn" style="margin-left:auto" onclick="event.stopPropagation();copyText(\`${c.content.replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`)">复制</button>
+          <button class="note-action-btn" onclick="event.stopPropagation();shareText(\`${c.content.replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`)">存入备忘录</button>
         </div>
       </div>
     `).join('')}
@@ -1038,6 +1041,31 @@ function copyNoteText(i){
     ta.select();document.execCommand('copy');document.body.removeChild(ta);
     alert('已复制到剪贴板');
   });
+}
+
+// ===== Generic Copy & Share =====
+function copyText(text){
+  navigator.clipboard.writeText(text).then(()=>{
+    alert('已复制到剪贴板');
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text;document.body.appendChild(ta);
+    ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    alert('已复制到剪贴板');
+  });
+}
+function shareText(text){
+  if(navigator.share){
+    navigator.share({title:'一秋的工作台',text:text}).catch(()=>{});
+  }else{
+    copyText(text);
+    alert('已复制，可以粘贴到备忘录了');
+  }
+}
+function shareToNotes(i){
+  const notes=store.get('notes',[]);
+  if(!notes[i]) return;
+  shareText(notes[i].text);
 }
 
 // ===== Edit Copywrite =====
