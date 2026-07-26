@@ -519,16 +519,17 @@ function homePage(){
 
 // ===== Page Content Generators =====
 function todoPage(){
-  const todos=store.get('todos',[]);
+  const allTodos=store.get('todos',[]);
+  const todos=allTodos.filter(t=>!t.cleared);
   const done=todos.filter(t=>t.status==='done').length;
   const failed=todos.filter(t=>t.status==='fail').length;
   const pending=todos.filter(t=>t.status==='pending').length;
   const total=todos.length;
   const rate=total>0?Math.round(done/total*100):0;
 
-  // Group by date for history
+  // Group by date for history — use ALL todos including cleared
   const byDate={};
-  todos.forEach(t=>{
+  allTodos.forEach(t=>{
     const d=t.created||'未知日期';
     if(!byDate[d]) byDate[d]={total:0,done:0,fail:0,pending:0};
     byDate[d].total++;
@@ -559,15 +560,17 @@ function todoPage(){
     <div class="section-title">待办列表</div>
     <div class="todo-list" id="todoList">
       ${todos.length===0?'<div style="text-align:center;padding:30px;color:var(--text-hint);font-size:13px">还没有待办，上面的输入框开始吧 ✨</div>':''}
-      ${todos.map((t,i)=>`
+      ${todos.map((t,i)=>{
+        const realIdx=allTodos.indexOf(t);
+        return `
         <div class="todo-item ${t.status==='done'?'done':''} ${t.status==='fail'?'fail':''}">
           <div class="todo-text">${t.text}</div>
           <div class="todo-btns">
-            <button class="todo-btn check" onclick="markTodo(${i},'done')" title="完成">✓</button>
-            <button class="todo-btn cross" onclick="markTodo(${i},'fail')" title="没做">✗</button>
+            <button class="todo-btn check" onclick="markTodo(${realIdx},'done')" title="完成">✓</button>
+            <button class="todo-btn cross" onclick="markTodo(${realIdx},'fail')" title="没做">✗</button>
           </div>
-        </div>
-      `).join('')}
+        </div>`;
+      }).join('')}
     </div>
     <div class="todo-feedback" id="todoFeedback"></div>
     ${todos.length>0?`<div style="margin-top:14px;text-align:center"><button class="btn-secondary" onclick="clearDoneTodos()" style="font-size:12px;color:var(--text-hint)">清除今日已完成</button></div>`:''}
@@ -578,7 +581,7 @@ function todoPage(){
       ${dateKeys.map(d=>{
         const s=byDate[d];
         const r=s.total>0?Math.round(s.done/s.total*100):0;
-        const dayTodos=todos.filter(t=>(t.created||'')===d);
+        const dayTodos=allTodos.filter(t=>(t.created||'')===d);
         return `
         <div>
           <div style="padding:10px 0;border-bottom:1px solid var(--celadon-ghost);cursor:pointer" onclick="toggleHistory(this)">
@@ -779,7 +782,7 @@ function growthPage(){
   const weekCount=fitTodos.filter(t=>{const d=new Date(t.created);return d>=weekStart}).length+fitnessLogs.filter(l=>{const d=new Date(l.time);return d>=weekStart}).length;
   const monthCount=fitTodos.filter(t=>{const d=new Date(t.created);return d>=monthStart}).length+fitnessLogs.filter(l=>{const d=new Date(l.time);return d>=monthStart}).length;
 
-  // All fitness records combined
+  // All fitness records combined (include cleared todos for fitness)
   const allFitRecords=[
     ...fitTodos.map(t=>({text:t.text,time:t.created,source:'待办'})),
     ...fitnessLogs.map(l=>({text:l.text,time:l.time,source:'记录'}))
@@ -988,10 +991,13 @@ function markTodo(i,status){
   },100);
 }
 function clearDoneTodos(){
-  if(!confirm('确定清除今日所有已完成/未完成的待办？历史日期的记录不会被删除。')) return;
+  if(!confirm('确定清除今日所有已完成/未完成的待办？\n它们会从待办列表消失，但历史记录和健身统计会保留。')) return;
   let todos=store.get('todos',[]);
   const today=new Date().toLocaleDateString();
-  todos=todos.filter(t=>!(t.created===today&&(t.status==='done'||t.status==='fail')));
+  todos=todos.map(t=>{
+    if(t.created===today&&(t.status==='done'||t.status==='fail')){t.cleared=true;}
+    return t;
+  });
   store.set('todos',todos);
   renderCurrentPage();
 }
