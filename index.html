@@ -779,6 +779,7 @@ function growthPage(){
   const fitKeywords=['运动','健身','锻炼','跑步','游泳','攀岩','骑行','瑜伽','跳绳','球','爬楼','走路','拉伸'];
   const todos=store.get('todos',[]);
   const fitTodos=todos.filter(t=>t.status==='done'&&fitKeywords.some(k=>t.text.includes(k)));
+  const hiddenFitTodos=store.get('hiddenFitTodos',[]);
 
   // Calculate this week and this month (Monday to Sunday)
   const now2=new Date();
@@ -786,12 +787,12 @@ function growthPage(){
   const weekStart=new Date(now2);weekStart.setDate(now2.getDate()-dayOfWeek+1);weekStart.setHours(0,0,0,0);
   const monthStart=new Date(now2.getFullYear(),now2.getMonth(),1);
 
-  const weekCount=fitTodos.filter(t=>{const d=new Date(t.created);return d>=weekStart}).length+fitnessLogs.filter(l=>{const d=new Date(l.time);return d>=weekStart}).length;
-  const monthCount=fitTodos.filter(t=>{const d=new Date(t.created);return d>=monthStart}).length+fitnessLogs.filter(l=>{const d=new Date(l.time);return d>=monthStart}).length;
+  const weekCount=fitTodos.filter(t=>!hiddenFitTodos.includes(todos.indexOf(t))).filter(t=>{const d=new Date(t.created);return d>=weekStart}).length+fitnessLogs.filter(l=>{const d=new Date(l.time);return d>=weekStart}).length;
+  const monthCount=fitTodos.filter(t=>!hiddenFitTodos.includes(todos.indexOf(t))).filter(t=>{const d=new Date(t.created);return d>=monthStart}).length+fitnessLogs.filter(l=>{const d=new Date(l.time);return d>=monthStart}).length;
 
-  // All fitness records combined (include cleared todos for fitness)
+  // All fitness records combined (include cleared todos for fitness, exclude hidden)
   const allFitRecords=[
-    ...fitTodos.map((t,idx)=>({text:t.text,time:t.created,source:'待办',type:'todo',idx:todos.indexOf(t)})),
+    ...fitTodos.filter((t,i)=>!hiddenFitTodos.includes(todos.indexOf(t))).map(t=>({text:t.text,time:t.created,source:'待办',type:'todo',idx:todos.indexOf(t)})),
     ...fitnessLogs.map((l,idx)=>({text:l.text,time:l.time,source:'记录',type:'log',idx:idx}))
   ].sort((a,b)=>new Date(b.time)-new Date(a.time));
 
@@ -1202,9 +1203,10 @@ function deleteFitnessRecord(type,idx){
     const logs=store.get('fitnessLogs',[]);
     logs.splice(idx,1);store.set('fitnessLogs',logs);
   }else if(type==='todo'){
-    const todos=store.get('todos',[]);
-    if(todos[idx]) todos[idx].status='pending';
-    store.set('todos',todos);
+    // Mark this todo as hidden from fitness, don't touch the todo itself
+    const hidden=store.get('hiddenFitTodos',[]);
+    if(!hidden.includes(idx)) hidden.push(idx);
+    store.set('hiddenFitTodos',hidden);
   }
   renderCurrentPage();
 }
