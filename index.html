@@ -241,7 +241,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ===== App Version Auto-Refresh =====
-var APP_VERSION='3.4.0';
+var APP_VERSION='3.4.1';
 (function(){
   var saved=localStorage.getItem('yiqiu_app_ver');
   if(saved&&saved!==APP_VERSION){localStorage.setItem('yiqiu_app_ver',APP_VERSION);location.reload(true);}
@@ -331,8 +331,11 @@ function renderBottomContent(page){
 
 // ===== Home Page =====
 function homePage(){
-  var todos=store.get('todos',[]),pending=todos.filter(function(t){return t.status==='pending'}).length;
+  var allTodos=store.get('todos',[]),todos=allTodos.filter(function(t){return !t.cleared});
+  var pending=todos.filter(function(t){return t.status==='pending'}).length;
   var done=todos.filter(function(t){return t.status==='done'}).length;
+  var failed=todos.filter(function(t){return t.status==='fail'}).length;
+  var total=todos.length,rate=total>0?Math.round(done/total*100):0;
   var notes=store.get('notes',[]),copies=store.get('copies',[]),projects=store.get('projects',[]);
   var books=store.get('books',[]),duolingo=store.get('duolingo',{streak:15});
   var fitKw=['运动','健身','锻炼','跑步','游泳','攀岩','骑行','瑜伽','跳绳','球','爬楼','走路','拉伸'];
@@ -343,7 +346,7 @@ function homePage(){
   var h=now2.getHours(),greet=h<6?'夜深了':h<11?'早上好':h<14?'中午好':h<18?'下午好':'晚上好';
   var html='<div class="home-greeting"><div class="home-greeting-text">'+greet+'，一秋 ️</div><div class="home-greeting-sub">'+dateStr+'</div></div>';
   html+='<div class="home-tiles">';
-  html+='<div class="tile tile-lg" onclick="navTo(\'todo\')"><div class="tile-accent"></div><div class="tile-icon"></div><div class="tile-title">待办事项</div><div style="display:flex;gap:16px;margin-top:10px"><div><span style="font-size:24px;font-weight:600;color:var(--celadon-deep)">'+pending+'</span><span style="font-size:12px;color:var(--text-sec);margin-left:4px">待完成</span></div><div><span style="font-size:24px;font-weight:600;color:#2E7D32">'+done+'</span><span style="font-size:12px;color:var(--text-sec);margin-left:4px">已完成</span></div></div></div>';
+  html+='<div class="tile tile-lg" onclick="navTo(\'todo\')"><div class="tile-accent"></div><div class="tile-icon">📋</div><div class="tile-title">待办事项</div><div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap"><div><span style="font-size:24px;font-weight:600;color:var(--celadon-deep)">'+pending+'</span><span style="font-size:12px;color:var(--text-sec);margin-left:4px">待完成</span></div><div><span style="font-size:24px;font-weight:600;color:#2E7D32">'+done+'</span><span style="font-size:12px;color:var(--text-sec);margin-left:4px">已完成</span></div><div><span style="font-size:24px;font-weight:600;color:var(--red)">'+failed+'</span><span style="font-size:12px;color:var(--text-sec);margin-left:4px">未完成</span></div><div><span style="font-size:24px;font-weight:600;color:var(--celadon)">'+rate+'%</span><span style="font-size:12px;color:var(--text-sec);margin-left:4px">完成率</span></div></div></div>';
   html+='<div class="tile" onclick="navTo(\'create\',\'inspire\')"><div class="tile-accent"></div><div class="tile-icon">💡</div><div class="tile-title">灵感</div><div class="tile-sub">'+(notes.length>0?notes.length+'条随笔':'记录第一条灵感')+'</div></div>';
   html+='<div class="tile" onclick="navTo(\'create\',\'copywrite\')"><div class="tile-accent"></div><div class="tile-icon">📝</div><div class="tile-title">文案</div><div class="tile-sub">'+(copies.length>0?copies.length+'篇文案':'开始整理文案')+'</div></div>';
   html+='<div class="tile" onclick="navTo(\'create\',\'video\')"><div class="tile-accent"></div><div class="tile-icon"></div><div class="tile-title">视频项目</div><div class="tile-sub">'+(projects.length>0?projects.length+'个项目':'创建第一个项目')+'</div></div>';
