@@ -106,8 +106,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .history-item .h-status.pending{background:var(--celadon-ghost);color:var(--celadon-deep)}
 
 /* Create */
-.create-tabs{display:flex;gap:8px;margin-bottom:20px}
-.create-tab{flex:1;padding:10px;text-align:center;background:var(--card);border:1.5px solid var(--celadon-mist);border-radius:10px;font-size:13px;font-family:var(--font);color:var(--text-sec);cursor:pointer;font-weight:500}
+.create-tabs{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.create-tab{padding:20px;text-align:left;background:var(--card);border:1.5px solid var(--celadon-mist);border-radius:14px;font-size:16px;font-family:var(--font);color:var(--text-sec);cursor:pointer;font-weight:500;box-shadow:var(--shadow);transition:all .15s}
+.create-tab:active{transform:scale(0.97);background:var(--celadon-ghost)}
 .create-tab.active{background:var(--celadon);color:#fff;border-color:var(--celadon)}
 .note-input{width:100%;padding:14px;border:1.5px solid var(--celadon-mist);border-radius:var(--radius-sm);font-size:14px;font-family:var(--font);background:var(--card);color:var(--text);outline:none;resize:vertical;min-height:100px;margin-bottom:12px}
 .note-input:focus{border-color:var(--celadon)}
@@ -200,7 +201,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ===== App Version Auto-Refresh =====
-var APP_VERSION='3.0.0';
+var APP_VERSION='3.1.0';
 (function(){
   var saved=localStorage.getItem('yiqiu_app_ver');
   if(saved&&saved!==APP_VERSION){localStorage.setItem('yiqiu_app_ver',APP_VERSION);location.reload(true);}
