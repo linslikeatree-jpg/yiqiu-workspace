@@ -15,9 +15,6 @@
 <link rel="apple-touch-icon" href="icon.png?v=2">
 <meta name="apple-mobile-web-app-title" content="一秋工作台">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js?v=2"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js?v=2"></script>
 <style>
 :root {
   --celadon-deep:#3D7A8E; --celadon:#5B9EB5; --celadon-light:#8DC0CC;
@@ -33,22 +30,6 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{display:none}
-
-/* ===== Loading Overlay ===== */
-#loadingOverlay{
-  position:fixed;inset:0;z-index:9999;
-  background:var(--bg);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  transition:opacity .4s;
-}
-#loadingOverlay.hide{opacity:0;pointer-events:none}
-#loadingOverlay .spinner{
-  width:36px;height:36px;border:3px solid var(--celadon-mist);
-  border-top-color:var(--celadon);border-radius:50%;
-  animation:spin .8s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-#loadingOverlay p{margin-top:16px;font-size:14px;color:var(--text-sec)}
 
 /* ===== Layout Toggle ===== */
 .layout-toggle{
@@ -379,9 +360,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </head>
 <body>
 
-<!-- Loading Overlay -->
-<div id="loadingOverlay"><div class="spinner"></div><p>同步云端数据中…</p></div>
-
 <!-- Layout Toggle -->
 <button class="layout-toggle" onclick="toggleLayout()">切换布局</button>
 
@@ -440,69 +418,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ===== Data Store (localStorage) =====
-// ===== Firebase + Cloud Sync =====
-const firebaseConfig={
-  apiKey:"AIzaSyD1NHnvpseUCpp-civMDFmfK0TLNhnd7FI",
-  authDomain:"renyiqiu-workspace.firebaseapp.com",
-  projectId:"renyiqiu-workspace",
-  storageBucket:"renyiqiu-workspace.firebasestorage.app",
-  messagingSenderId:"1011895442742",
-  appId:"1:1011895442742:web:38e8775cce3e38c5a5a797"
-};
-let _cloudReady=false, db=null;
-
-// Initialize Firebase with timeout fallback
-async function initFirebase(){
-  try{
-    if(typeof firebase==='undefined') throw new Error('Firebase SDK not loaded');
-    firebase.initializeApp(firebaseConfig);
-    db=firebase.firestore();
-    // Test connection with timeout
-    await Promise.race([
-      db.collection('appData').doc('test_conn').get(),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),500))
-    ]);
-    _cloudReady=true;
-  }catch(e){
-    console.warn('Firebase init failed:',e.message);
-    _cloudReady=false;
-    db=null;
-  }
-}
-
-const DOC_ID='yiqiu_data';
-
-// Initialize: sync Firestore → localStorage
-async function initStore(){
-  const ov=document.getElementById('loadingOverlay');
-  try{
-    if(_cloudReady && db){
-      const snap=await db.collection('appData').doc(DOC_ID).get();
-      if(snap.exists){
-        const d=snap.data();
-        for(const k in d){
-          if(d[k]!==undefined) localStorage.setItem('yiqiu_'+k,JSON.stringify(d[k]));
-        }
-      }
-    }
-  }catch(e){console.warn('Cloud sync failed:',e)}
-  if(ov){ov.classList.add('hide');setTimeout(()=>ov.style.display='none',500)}
-  renderCurrentPage();
-}
-
-// Cloud write queue to prevent race conditions
-let _writeQueue=Promise.resolve();
-function _enqueueCloudWrite(data){
-  if(!_cloudReady||!db) return;
-  _writeQueue=_writeQueue.then(()=>db.collection('appData').doc(DOC_ID).set(data,{merge:true})).catch(e=>console.warn('Cloud write failed:',e));
-}
-
 const store={
   get(k,d){try{return JSON.parse(localStorage.getItem('yiqiu_'+k))||d}catch(e){return d}},
-  set(k,v){
-    localStorage.setItem('yiqiu_'+k,JSON.stringify(v));
-    if(_cloudReady) _enqueueCloudWrite({[k]:v});
-  }
+  set(k,v){localStorage.setItem('yiqiu_'+k,JSON.stringify(v))}
 };
 
 // ===== Date & Quote =====
@@ -1366,7 +1284,6 @@ function importData(){
 }
 
 // ===== Initial Render =====
-initFirebase().then(initStore).catch(()=>initStore());
 renderBottomContent('home');
 </script>
 </body>
