@@ -241,7 +241,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ===== App Version Auto-Refresh =====
-var APP_VERSION='3.4.1';
+var APP_VERSION='3.4.2';
 (function(){
   var saved=localStorage.getItem('yiqiu_app_ver');
   if(saved&&saved!==APP_VERSION){localStorage.setItem('yiqiu_app_ver',APP_VERSION);location.reload(true);}
@@ -375,10 +375,10 @@ function todoPage(){
   var now2=new Date(),dow=now2.getDay()||7;
   var weekStart=new Date(now2);weekStart.setDate(now2.getDate()-dow+1);weekStart.setHours(0,0,0,0);
   var monthStart=new Date(now2.getFullYear(),now2.getMonth(),1);
-  var weekDone=allTodos.filter(function(t){return t.status==='done'&&!t.cleared&&new Date(t.created)>=weekStart}).length;
-  var weekFail=allTodos.filter(function(t){return t.status==='fail'&&!t.cleared&&new Date(t.created)>=weekStart}).length;
-  var monthDone=allTodos.filter(function(t){return t.status==='done'&&!t.cleared&&new Date(t.created)>=monthStart}).length;
-  var monthFail=allTodos.filter(function(t){return t.status==='fail'&&!t.cleared&&new Date(t.created)>=monthStart}).length;
+  var weekDone=allTodos.filter(function(t){return t.status==='done'&&new Date(t.created)>=weekStart}).length;
+  var weekFail=allTodos.filter(function(t){return t.status==='fail'&&new Date(t.created)>=weekStart}).length;
+  var monthDone=allTodos.filter(function(t){return t.status==='done'&&new Date(t.created)>=monthStart}).length;
+  var monthFail=allTodos.filter(function(t){return t.status==='fail'&&new Date(t.created)>=monthStart}).length;
 
   var html='<div class="todo-input-wrap"><textarea class="todo-input" id="todoInput" placeholder="输入待办，每行一条…"></textarea><button class="todo-add-btn" onclick="addTodo()">添加</button></div>';
   html+='<div class="todo-stats"><div>待完成 <span>'+pending+'</span></div><div>已完成 <span>'+done+'</span></div><div>未完成 <span>'+failed+'</span></div><div>完成率 <span>'+rate+'%</span></div></div>';
@@ -416,7 +416,7 @@ function todoPage(){
       if(t.created===d){
         html+='<div class="history-item"><span style="flex:1;font-size:13px">'+escHtml(t.text)+'</span>';
         html+='<span class="h-status '+t.status+'">'+(t.status==='done'?'完成':t.status==='fail'?'未完成':'待办')+'</span>';
-        html+='<span class="history-item .fr-del" onclick="deleteHistoryItem('+idx+')" style="color:var(--text-hint);cursor:pointer;margin-left:8px;font-size:14px"></span>';
+        html+='<span class="fr-del" onclick="deleteHistoryItem('+idx+')" style="color:var(--red);cursor:pointer;margin-left:8px;font-size:16px">✕</span>';
         html+='</div>';
       }
     });
@@ -598,6 +598,7 @@ function clearDoneTodos(){
   store.set('todos',todos);renderCurrentPage();
 }
 function deleteHistoryItem(idx){
+  if(!confirm('确定删除这条历史记录吗？'))return;
   var todos=store.get('todos',[]);todos.splice(idx,1);store.set('todos',todos);renderCurrentPage();
 }
 
