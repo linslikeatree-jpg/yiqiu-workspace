@@ -599,6 +599,13 @@ function homePage(){
         <div class="tile-sub">连续打卡</div>
       </div>
     </div>
+    <div style="margin-top:24px;padding:16px;background:var(--card);border-radius:var(--radius-sm);box-shadow:var(--shadow)">
+      <div style="font-size:13px;font-weight:500;color:var(--text-sec);margin-bottom:12px">☁️ 数据备份</div>
+      <div style="display:flex;gap:10px">
+        <button onclick="exportData()" style="flex:1;padding:10px;background:var(--celadon-ghost);border:1.5px solid var(--celadon-mist);border-radius:12px;font-size:13px;font-family:var(--font);color:var(--celadon-deep);cursor:pointer;font-weight:500">📤 备份数据</button>
+        <button onclick="importData()" style="flex:1;padding:10px;background:var(--celadon-ghost);border:1.5px solid var(--celadon-mist);border-radius:12px;font-size:13px;font-family:var(--font);color:var(--celadon-deep);cursor:pointer;font-weight:500">📥 恢复数据</button>
+      </div>
+    </div>
   `;
 }
 
@@ -1304,6 +1311,58 @@ function deleteFitnessRecord(type,idx){
 function deleteHistoryItem(idx){
   const todos=store.get('todos',[]);
   todos.splice(idx,1);store.set('todos',todos);renderCurrentPage();
+}
+
+// ===== Data Backup / Restore =====
+const DATA_KEYS=['todos','notes','copies','projects','books','duolingo','fitnessLogs','hiddenFitTodos'];
+function exportData(){
+  const data={};
+  DATA_KEYS.forEach(k=>{data[k]=store.get(k,null)});
+  const json=JSON.stringify(data);
+  const encoded=btoa(unescape(encodeURIComponent(json)));
+  const ta=document.createElement('textarea');ta.value=encoded;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');alert('✅ 备份码已复制！请粘贴保存到备忘录。')}catch(e){prompt('请复制下面的备份码：',encoded)}
+  document.body.removeChild(ta);
+}
+function importData(){
+  const code=prompt('请粘贴备份码：');
+  if(!code||!code.trim()) return;
+  try{
+    const json=decodeURIComponent(escape(atob(code.trim())));
+    const data=JSON.parse(json);
+    let count=0;
+    for(const k in data){
+      if(data[k]!==null&&data[k]!==undefined){store.set(k,data[k]);count++;}
+    }
+    alert('✅ 恢复了 '+count+' 项数据！');
+    renderCurrentPage();
+  }catch(e){alert('❌ 备份码无效，请检查后重试。')}
+}
+
+// ===== Data Backup / Restore =====
+const DATA_KEYS=['todos','notes','copies','projects','books','duolingo','fitnessLogs','hiddenFitTodos'];
+function exportData(){
+  const data={};
+  DATA_KEYS.forEach(k=>{data[k]=store.get(k,null)});
+  const json=JSON.stringify(data);
+  const encoded=btoa(unescape(encodeURIComponent(json)));
+  const ta=document.createElement('textarea');ta.value=encoded;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');alert('✅ 备份码已复制！请粘贴保存到备忘录。')}catch(e){prompt('请复制下面的备份码：',encoded)}
+  document.body.removeChild(ta);
+}
+function importData(){
+  const code=prompt('请粘贴备份码：');
+  if(!code||!code.trim()) return;
+  try{
+    const json=decodeURIComponent(escape(atob(code.trim())));
+    const data=JSON.parse(json);
+    let count=0;
+    for(const k in data){
+      if(data[k]!==null&&data[k]!==undefined){store.set(k,data[k]);count++;}
+    }
+    alert('✅ 恢复了 '+count+' 项数据！');
+    renderCurrentPage();
+  }catch(e){alert('❌ 备份码无效，请检查后重试。')}
 }
 
 // ===== Initial Render =====
