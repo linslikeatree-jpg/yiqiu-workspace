@@ -241,7 +241,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ===== App Version Auto-Refresh =====
-var APP_VERSION='3.3.0';
+var APP_VERSION='3.4.0';
 (function(){
   var saved=localStorage.getItem('yiqiu_app_ver');
   if(saved&&saved!==APP_VERSION){localStorage.setItem('yiqiu_app_ver',APP_VERSION);location.reload(true);}
@@ -532,17 +532,31 @@ function growthPage(){
   html+='<button class="btn-primary" onclick="saveDuolingo()">保存</button></div></div></div>';
 
   // Reading
-  html+='<div class="growth-section"><div class="growth-title">📖 阅读</div>';
+  var reading=books.filter(function(b){return b.progress<100});
+  var finished=books.filter(function(b){return b.progress>=100});
+  html+='<div class="growth-section"><div class="growth-title">📖 在读</div>';
   html+='<div class="add-form"><input id="bookTitle" placeholder="书名"><input id="bookPages" type="number" placeholder="总页数" style="width:80px"><button class="btn-primary" onclick="addBook()">添加</button></div>';
-  books.forEach(function(b,i){
+  reading.forEach(function(b){
+    var realIdx=books.indexOf(b);
     html+='<div class="book-item"><div class="book-title">'+escHtml(b.title)+'</div>';
     html+='<div class="book-progress-bar"><div class="book-progress-fill" style="width:'+b.progress+'%"></div></div>';
     html+='<div style="font-size:12px;color:var(--text-hint);margin-bottom:8px">'+b.progress+'%（'+(b.currentPage||0)+'/'+b.pages+'页）</div>';
-    html+='<div class="book-edit-row"><span>当前页</span><input type="number" value="'+(b.currentPage||0)+'" id="bookCur'+i+'">';
-    html+='<span>总页</span><input type="number" value="'+b.pages+'" id="bookTotal'+i+'">';
-    html+='<button class="btn-sm" onclick="updateBookProgress('+i+')">更新</button>';
-    html+='<button class="btn-sm" onclick="deleteBook('+i+')" style="color:#c0392b;margin-left:auto">删除</button></div></div>';
+    html+='<div class="book-edit-row"><span>当前页</span><input type="number" value="'+(b.currentPage||0)+'" id="bookCur'+realIdx+'">';
+    html+='<span>总页</span><input type="number" value="'+b.pages+'" id="bookTotal'+realIdx+'">';
+    html+='<button class="btn-sm" onclick="updateBookProgress('+realIdx+')">更新</button>';
+    html+='<button class="btn-sm" onclick="deleteBook('+realIdx+')" style="color:#c0392b;margin-left:auto">删除</button></div></div>';
   });
+  if(reading.length===0)html+='<div style="text-align:center;color:var(--text-hint);padding:20px">暂无在读，添加一本书开始阅读吧</div>';
+  html+='</div>';
+
+  // Reading list (completed)
+  html+='<div class="growth-section"><div class="growth-title">📚 阅读书单（'+finished.length+' 本）</div>';
+  finished.forEach(function(b){
+    html+='<div class="book-item" style="border-left-color:var(--green)"><div class="book-title" style="color:var(--green)">✅ '+escHtml(b.title)+'</div>';
+    html+='<div style="font-size:12px;color:var(--text-hint)">已读完 · '+b.pages+'页</div></div>';
+  });
+  if(finished.length===0)html+='<div style="text-align:center;color:var(--text-hint);padding:20px">读完的书会出现在这里</div>';
+  html+='</div>';
 
   // Fitness
   html+='<div class="growth-section" style="margin-top:24px"><div class="growth-title">🏋️ 健身（本周 '+weekCount+' · 本月 '+monthCount+'）</div>';
