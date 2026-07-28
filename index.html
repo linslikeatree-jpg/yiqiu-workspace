@@ -16,8 +16,8 @@
 <meta name="apple-mobile-web-app-title" content="一秋工作台">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js?v=2"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js?v=2"></script>
 <style>
 :root {
   --celadon-deep:#3D7A8E; --celadon:#5B9EB5; --celadon-light:#8DC0CC;
@@ -449,24 +449,43 @@ const firebaseConfig={
   messagingSenderId:"1011895442742",
   appId:"1:1011895442742:web:38e8775cce3e38c5a5a797"
 };
-firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+let _cloudReady=false, db=null;
+
+// Initialize Firebase with timeout fallback
+async function initFirebase(){
+  try{
+    if(typeof firebase==='undefined') throw new Error('Firebase SDK not loaded');
+    firebase.initializeApp(firebaseConfig);
+    db=firebase.firestore();
+    // Test connection with timeout
+    await Promise.race([
+      db.collection('appData').doc('test_conn').get(),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3000))
+    ]);
+    _cloudReady=true;
+  }catch(e){
+    console.warn('Firebase init failed:',e.message);
+    _cloudReady=false;
+    db=null;
+  }
+}
+
 const DOC_ID='yiqiu_data';
-let _cloudReady=false;
 
 // Initialize: sync Firestore → localStorage
 async function initStore(){
+  const ov=document.getElementById('loadingOverlay');
   try{
-    const snap=await db.collection('appData').doc(DOC_ID).get();
-    if(snap.exists){
-      const d=snap.data();
-      for(const k in d){
-        if(d[k]!==undefined) localStorage.setItem('yiqiu_'+k,JSON.stringify(d[k]));
+    if(_cloudReady && db){
+      const snap=await db.collection('appData').doc(DOC_ID).get();
+      if(snap.exists){
+        const d=snap.data();
+        for(const k in d){
+          if(d[k]!==undefined) localStorage.setItem('yiqiu_'+k,JSON.stringify(d[k]));
+        }
       }
     }
   }catch(e){console.warn('Cloud sync failed:',e)}
-  _cloudReady=true;
-  const ov=document.getElementById('loadingOverlay');
   if(ov){ov.classList.add('hide');setTimeout(()=>ov.style.display='none',500)}
   renderCurrentPage();
 }
@@ -474,6 +493,7 @@ async function initStore(){
 // Cloud write queue to prevent race conditions
 let _writeQueue=Promise.resolve();
 function _enqueueCloudWrite(data){
+  if(!_cloudReady||!db) return;
   _writeQueue=_writeQueue.then(()=>db.collection('appData').doc(DOC_ID).set(data,{merge:true})).catch(e=>console.warn('Cloud write failed:',e));
 }
 
@@ -1287,7 +1307,7 @@ function deleteHistoryItem(idx){
 }
 
 // ===== Initial Render =====
-initStore();
+initFirebase().then(initStore).catch(()=>initStore());
 renderBottomContent('home');
 </script>
 </body>
