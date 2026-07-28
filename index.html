@@ -568,12 +568,13 @@ function todoPage(){
           <div class="todo-btns">
             <button class="todo-btn check" onclick="markTodo(${realIdx},'done')" title="完成">✓</button>
             <button class="todo-btn cross" onclick="markTodo(${realIdx},'fail')" title="没做">✗</button>
+            <button class="todo-btn" onclick="archiveTodo(${realIdx})" title="删除" style="font-size:14px;color:var(--text-hint)">✕</button>
           </div>
         </div>`;
       }).join('')}
     </div>
     <div class="todo-feedback" id="todoFeedback"></div>
-    ${todos.length>0?`<div style="margin-top:14px;text-align:center"><button class="btn-secondary" onclick="clearDoneTodos()" style="font-size:12px;color:var(--text-hint)">清除今日已完成</button></div>`:''}
+    ${(done+failed)>0?`<div style="margin-top:14px;text-align:center"><button class="btn-secondary" onclick="clearDoneTodos()" style="font-size:12px;color:var(--text-hint)">清除所有已完成</button></div>`:''}
 
     ${dateKeys.length>0?`
     <div class="section-title" style="margin-top:28px">📊 历史记录</div>
@@ -1000,13 +1001,18 @@ function markTodo(i,status){
   },100);
 }
 function clearDoneTodos(){
-  if(!confirm('确定清除今日所有已完成/未完成的待办？\n它们会从待办列表消失，但历史记录和健身统计会保留。')) return;
+  if(!confirm('确定清除所有已完成/未完成的待办？\n它们会从列表消失，但历史记录和健身统计永远保留。')) return;
   let todos=store.get('todos',[]);
-  const today=new Date().toLocaleDateString();
   todos=todos.map(t=>{
-    if(t.created===today&&(t.status==='done'||t.status==='fail')){t.cleared=true;}
+    if(t.status==='done'||t.status==='fail'){t.cleared=true;}
     return t;
   });
+  store.set('todos',todos);
+  renderCurrentPage();
+}
+function archiveTodo(idx){
+  let todos=store.get('todos',[]);
+  if(todos[idx]) todos[idx].cleared=true;
   store.set('todos',todos);
   renderCurrentPage();
 }
