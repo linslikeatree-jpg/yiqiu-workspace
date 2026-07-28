@@ -128,12 +128,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .history-item .h-status.pending{background:var(--celadon-ghost);color:var(--celadon-deep)}
 
 /* Create */
-.create-tabs{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.create-tabs{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
 .create-tab{padding:14px 18px;text-align:left;background:var(--card);border:2px solid var(--celadon-mist);border-radius:14px;font-size:15px;font-family:var(--font);color:var(--text-sec);cursor:pointer;font-weight:600;box-shadow:var(--shadow);transition:all .2s;position:relative;overflow:hidden}
 .create-tab::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--celadon);border-radius:0 4px 4px 0;opacity:0;transition:opacity .2s}
 .create-tab:active{transform:scale(.97);border-color:var(--celadon)}
 .create-tab.active{background:var(--celadon);color:#fff;border-color:var(--celadon);box-shadow:var(--shadow-lg)}
 .create-tab.active::before{opacity:1}
+.create-hero{display:flex;flex-direction:column;gap:16px;height:calc(100vh - 200px);min-height:360px}
+.create-hero-card{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card);border:2px solid var(--celadon-mist);border-radius:20px;cursor:pointer;box-shadow:var(--shadow);transition:all .2s;position:relative;overflow:hidden}
+.create-hero-card:active{transform:scale(.97);border-color:var(--celadon);box-shadow:var(--shadow-lg)}
+.create-hero-card .hero-icon{font-size:48px;margin-bottom:12px}
+.create-hero-card .hero-title{font-size:20px;font-weight:700;color:var(--celadon-deep)}
+.create-hero-card .hero-sub{font-size:13px;color:var(--text-hint);margin-top:6px}
+.create-hero-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--celadon),var(--celadon-light));opacity:0;transition:opacity .2s}
+.create-hero-card:active::after{opacity:1}
 .note-input{width:100%;padding:16px;border:2px solid var(--celadon-mist);border-radius:var(--radius-sm);font-size:15px;font-family:var(--font);background:var(--card);color:var(--text);outline:none;resize:vertical;min-height:110px;margin-bottom:14px;transition:border-color .2s}
 .note-input:focus{border-color:var(--celadon);box-shadow:0 0 0 3px rgba(91,158,181,.15)}
 .btn-primary{padding:12px 24px;background:var(--celadon);color:#fff;border:none;border-radius:12px;font-size:14px;font-family:var(--font);cursor:pointer;font-weight:600;transition:all .15s;box-shadow:0 2px 8px rgba(91,158,181,.3)}
@@ -233,7 +241,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ===== App Version Auto-Refresh =====
-var APP_VERSION='3.2.1';
+var APP_VERSION='3.3.0';
 (function(){
   var saved=localStorage.getItem('yiqiu_app_ver');
   if(saved&&saved!==APP_VERSION){localStorage.setItem('yiqiu_app_ver',APP_VERSION);location.reload(true);}
@@ -418,15 +426,20 @@ function todoPage(){
 // ===== Create Page =====
 function createPage(sub){
   if(sub==='edit')return editCopywritePage();
-  var html='<div class="create-tabs">';
-  html+='<button class="create-tab'+(sub==='inspire'?' active':'')+'" onclick="enterSubPage(\'inspire\')">💡 灵感</button>';
-  html+='<button class="create-tab'+(sub==='copywrite'?' active':'')+'" onclick="enterSubPage(\'copywrite\')"> 文案</button>';
-  html+='<button class="create-tab'+(sub==='video'?' active':'')+'" onclick="enterSubPage(\'video\')"> 视频</button>';
-  html+='</div>';
+  if(sub==='main'){
+    var notes=store.get('notes',[]),copies=store.get('copies',[]),projects=store.get('projects',[]);
+    var html='<div class="create-hero">';
+    html+='<div class="create-hero-card" onclick="enterSubPage(\'inspire\')"><div class="hero-icon">💡</div><div class="hero-title">灵感</div><div class="hero-sub">'+(notes.length>0?notes.length+' 条随笔':'记录此刻的灵感')+'</div></div>';
+    html+='<div class="create-hero-card" onclick="enterSubPage(\'copywrite\')"><div class="hero-icon">✍️</div><div class="hero-title">文案</div><div class="hero-sub">'+(copies.length>0?copies.length+' 篇文案':'整理你的文案')+'</div></div>';
+    html+='<div class="create-hero-card" onclick="enterSubPage(\'video\')"><div class="hero-icon">🎬</div><div class="hero-title">视频</div><div class="hero-sub">'+(projects.length>0?projects.length+' 个项目':'规划视频项目')+'</div></div>';
+    html+='</div>';
+    return html;
+  }
+  var html='<div class="sub-header"><button class="sub-back" onclick="enterSubPage(\'main\')">←</button><span class="sub-title">'+(sub==='inspire'?'💡 灵感':sub==='copywrite'?'✍️ 文案':'🎬 视频')+'</span></div>';
   if(sub==='inspire')return html+inspireSubPage();
   if(sub==='copywrite')return html+copywriteSubPage();
   if(sub==='video')return html+videoSubPage();
-  return html+'<div style="text-align:center;color:var(--text-hint);padding:40px">选择一个子页面</div>';
+  return html;
 }
 function inspireSubPage(){
   var notes=store.get('notes',[]);
