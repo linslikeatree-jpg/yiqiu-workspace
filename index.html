@@ -74,7 +74,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .todo-input{flex:1;padding:14px 16px;border:1.5px solid var(--celadon-mist);border-radius:var(--radius-sm);font-size:14px;font-family:var(--font);background:var(--card);color:var(--text);outline:none;resize:none;min-height:48px}
 .todo-input:focus{border-color:var(--celadon)}
 .todo-add-btn{padding:0 20px;background:var(--celadon);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-family:var(--font);cursor:pointer;font-weight:500}
-.todo-stats{display:flex;gap:16px;margin-bottom:16px;font-size:13px;color:var(--text-sec)}
+.todo-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;font-size:13px;color:var(--text-sec)}
+.todo-stats>div{background:var(--card);padding:10px;border-radius:10px;text-align:center;box-shadow:var(--shadow)}
 .todo-stats span{font-weight:600;color:var(--celadon-deep)}
 .todo-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--card);border-radius:var(--radius-sm);margin-bottom:10px;box-shadow:var(--shadow)}
 .todo-item.done .todo-text{text-decoration:line-through;color:var(--text-hint)}
@@ -89,8 +90,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* History */
 .history-section{margin-top:24px}
 .history-title{font-size:15px;font-weight:600;color:var(--celadon-deep);margin-bottom:12px}
-.history-week-stats{display:flex;gap:12px;margin-bottom:16px;font-size:12px}
-.history-week-stats .stat-box{flex:1;background:var(--card);padding:10px;border-radius:10px;text-align:center;box-shadow:var(--shadow)}
+.history-week-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.history-week-stats .stat-box{background:var(--card);padding:14px 10px;border-radius:10px;text-align:center;box-shadow:var(--shadow)}
 .history-week-stats .stat-num{font-size:18px;font-weight:600;color:var(--celadon-deep)}
 .history-week-stats .stat-label{color:var(--text-hint);margin-top:2px}
 .history-date{font-size:13px;font-weight:500;color:var(--text-sec);padding:10px 0 6px;cursor:pointer;display:flex;align-items:center;gap:6px}
