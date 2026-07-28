@@ -128,8 +128,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .history-item .h-status.pending{background:var(--celadon-ghost);color:var(--celadon-deep)}
 
 /* Create */
-.create-tabs{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
-.create-tab{padding:22px 20px;text-align:left;background:var(--card);border:2px solid var(--celadon-mist);border-radius:16px;font-size:17px;font-family:var(--font);color:var(--text-sec);cursor:pointer;font-weight:600;box-shadow:var(--shadow);transition:all .2s;position:relative;overflow:hidden}
+.create-tabs{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.create-tab{padding:14px 18px;text-align:left;background:var(--card);border:2px solid var(--celadon-mist);border-radius:14px;font-size:15px;font-family:var(--font);color:var(--text-sec);cursor:pointer;font-weight:600;box-shadow:var(--shadow);transition:all .2s;position:relative;overflow:hidden}
 .create-tab::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--celadon);border-radius:0 4px 4px 0;opacity:0;transition:opacity .2s}
 .create-tab:active{transform:scale(.97);border-color:var(--celadon)}
 .create-tab.active{background:var(--celadon);color:#fff;border-color:var(--celadon);box-shadow:var(--shadow-lg)}
@@ -233,7 +233,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ===== App Version Auto-Refresh =====
-var APP_VERSION='3.2.0';
+var APP_VERSION='3.2.1';
 (function(){
   var saved=localStorage.getItem('yiqiu_app_ver');
   if(saved&&saved!==APP_VERSION){localStorage.setItem('yiqiu_app_ver',APP_VERSION);location.reload(true);}
@@ -291,7 +291,20 @@ function navTo(page,sub){
 function enterSubPage(sub){currentSubPage=sub;renderCurrentPage();}
 function renderCurrentPage(){
   if(currentLayout==='sidebar')renderSidebar();
-  else{var p=document.querySelector('.bnav-item.active');if(p)p.click();}
+  else{
+    var p=document.querySelector('.bnav-item.active');
+    if(!p)return;
+    var label=p.querySelector('.bnav-label');
+    if(!label)return;
+    var t=label.textContent;
+    var map={'\u4e3b\u9875':'home','\u5f85\u529e':'todo','\u521b\u4f5c':'create','\u6210\u957f':'growth'};
+    var page=map[t]||'home';
+    var c=document.getElementById('bottomContent');
+    if(page==='home')c.innerHTML=homePage();
+    else if(page==='todo')c.innerHTML=todoPage();
+    else if(page==='create')c.innerHTML=createPage(currentSubPage);
+    else if(page==='growth')c.innerHTML=growthPage();
+  }
 }
 function renderPage(page){
   if(page==='home')return homePage();
