@@ -460,7 +460,7 @@ async function initFirebase(){
     // Test connection with timeout
     await Promise.race([
       db.collection('appData').doc('test_conn').get(),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),3000))
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),500))
     ]);
     _cloudReady=true;
   }catch(e){
