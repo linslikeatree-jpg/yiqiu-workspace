@@ -241,7 +241,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ===== App Version Auto-Refresh =====
-var APP_VERSION='3.4.2';
+var APP_VERSION='3.4.3';
 (function(){
   var saved=localStorage.getItem('yiqiu_app_ver');
   if(saved&&saved!==APP_VERSION){localStorage.setItem('yiqiu_app_ver',APP_VERSION);location.reload(true);}
@@ -594,12 +594,30 @@ function archiveTodo(idx){
 function clearDoneTodos(){
   if(!confirm('确定清除所有已完成/未完成的待办？\n它们会从待办列表消失，但历史记录和健身统计会保留。'))return;
   var todos=store.get('todos',[]);
-  todos=todos.map(function(t){if(t.status==='done'||t.status==='fail'){t.cleared=true}return t});
-  store.set('todos',todos);renderCurrentPage();
+  var fitKw=['运动','健身','锻炼','跑步','游泳','攀岩','骑行','瑜伽','跳绳','球','爬楼','走路','拉伸'];
+  var logs=store.get('fitnessLogs',[]);
+  todos=todos.map(function(t){
+    if((t.status==='done'||t.status==='fail')&&!t.cleared){
+      if(t.status==='done'&&fitKw.some(function(k){return t.text.indexOf(k)>=0})){
+        logs.push({text:t.text,time:t.created||new Date().toLocaleString()});
+      }
+      t.cleared=true;
+    }
+    return t;
+  });
+  store.set('todos',todos);store.set('fitnessLogs',logs);renderCurrentPage();
 }
 function deleteHistoryItem(idx){
   if(!confirm('确定删除这条历史记录吗？'))return;
-  var todos=store.get('todos',[]);todos.splice(idx,1);store.set('todos',todos);renderCurrentPage();
+  var todos=store.get('todos',[]);
+  var item=todos[idx];
+  var fitKw=['运动','健身','锻炼','跑步','游泳','攀岩','骑行','瑜伽','跳绳','球','爬楼','走路','拉伸'];
+  if(item&&item.status==='done'&&fitKw.some(function(k){return item.text.indexOf(k)>=0})){
+    var logs=store.get('fitnessLogs',[]);
+    logs.push({text:item.text,time:item.created||new Date().toLocaleString()});
+    store.set('fitnessLogs',logs);
+  }
+  todos.splice(idx,1);store.set('todos',todos);renderCurrentPage();
 }
 
 // ===== Note Actions =====
