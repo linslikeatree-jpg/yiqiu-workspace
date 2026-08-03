@@ -289,7 +289,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 // ===== App Version Auto-Refresh =====
-var APP_VERSION='3.5.0';
+var APP_VERSION='3.5.1';
 (function(){
   var saved=localStorage.getItem('yiqiu_app_ver');
   if(saved&&saved!==APP_VERSION){localStorage.setItem('yiqiu_app_ver',APP_VERSION);location.reload(true);}
@@ -584,6 +584,7 @@ function growthPage(){
   // Duolingo
   html+='<div class="growth-section"><div class="growth-title">🦉 多邻国 <button class="btn-sm" onclick="toggleDuoEdit()">编辑</button></div>';
   html+='<div class="duo-display">'+duolingo.streak+' 天</div>';
+  html+='<div style="text-align:center;margin:12px 0 4px"><button onclick="duoPlusOne()" style="padding:14px 48px;background:var(--celadon);color:#fff;border:none;border-radius:14px;font-size:18px;font-family:var(--font);font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(91,158,181,.3);transition:all .15s" ontouchstart="this.style.transform=\'scale(.93)\'" ontouchend="this.style.transform=\'scale(1)\'">+1 打卡</button></div>';
   html+='<div class="duo-edit-wrap" id="duoEditWrap"><div style="display:flex;gap:10px;align-items:center;justify-content:center">';
   html+='<span style="font-size:13px;color:var(--text-sec)">连续打卡：</span>';
   html+='<input type="number" id="duoStreakInput" value="'+duolingo.streak+'" min="0">';
@@ -728,6 +729,7 @@ function updateBookProgress(i){
 }
 function deleteBook(i){var books=store.get('books',[]);books.splice(i,1);store.set('books',books);renderCurrentPage()}
 function toggleDuoEdit(){var w=document.getElementById('duoEditWrap');w.classList.toggle('show')}
+function duoPlusOne(){var d=store.get('duolingo',{streak:0});d.streak=(d.streak||0)+1;store.set('duolingo',d);renderCurrentPage()}
 function saveDuolingo(){var v=parseInt(document.getElementById('duoStreakInput').value)||0;store.set('duolingo',{streak:v});renderCurrentPage()}
 function saveFitnessLog(){
   var el=document.getElementById('fitnessInput');if(!el||!el.value.trim())return;
